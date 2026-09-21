@@ -12,15 +12,60 @@
     <header>
         <div class="logo-container">
             <h1>NOVEX</h1>
-            <p>Trending Movies</p>
+            <p>Movies, Series & Anime</p>
         </div>
-        <form id="form">
-            <input type="text" id="search" placeholder="Search movies..." class="search">
-        </form>
+
+        <div class="header-controls">
+            <!-- Language Picker -->
+            <div class="lang-group">
+                <label for="languageSelect">🌐</label>
+                <select id="languageSelect" onchange="onLanguageChange()">
+                    <option value="en-US">English (US)</option>
+                    <option value="ja-JP">日本語 (Japanese / Anime)</option>
+                    <option value="es-ES">Español (Spanish)</option>
+                    <option value="fr-FR">Français (French)</option>
+                    <option value="de-DE">Deutsch (German)</option>
+                    <option value="zh-CN">中文 (Chinese)</option>
+                </select>
+            </div>
+
+            <!-- Search Form -->
+            <form id="form">
+                <input type="text" id="search" placeholder="Search..." class="search">
+            </form>
+        </div>
     </header>
 
     <main id="main">
+        <!-- Dynamic sections populating via app.js -->
+        <div id="content-container"></div>
     </main>
+    
+    <!-- Modal Player -->
+    <div id="videoModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn" onclick="closePlayer()">&times;</span>
+        
+        <!-- Controls Bar for Seasons, Episodes, and Audio/Subtitles info -->
+        <div id="playerBar" class="player-controls">
+          <div id="tvControls" class="tv-controls-group" style="display: none;">
+            <div class="control-group">
+              <label for="seasonSelect">Season:</label>
+              <select id="seasonSelect" onchange="onSeasonChange()"></select>
+            </div>
+            <div class="control-group">
+              <label for="episodeSelect">Episode:</label>
+              <select id="episodeSelect" onchange="onEpisodeChange()"></select>
+            </div>
+          </div>
+          <div class="audio-sub-info">
+            <span>💬 Subtitles & Audio (Dub/Sub) available inside video player controls (⚙️ / 💬)</span>
+          </div>
+        </div>
+
+        <iframe id="player" src="" allowfullscreen frameborder="0"></iframe>
+      </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
