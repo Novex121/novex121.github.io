@@ -12,40 +12,60 @@
     <header>
         <div class="logo-container">
             <h1>NOVEX</h1>
-            <p>Movies, Series & Anime</p>
         </div>
 
         <div class="header-controls">
             <!-- Language Selector -->
             <div class="lang-group">
-                <label for="languageSelect">🌐</label>
                 <select id="languageSelect" onchange="onLanguageChange()">
-                    <option value="en-US">English (US)</option>
-                    <option value="ja-JP">日本語 (Japanese / Anime)</option>
-                    <option value="es-ES">Español (Spanish)</option>
-                    <option value="fr-FR">Français (French)</option>
-                    <option value="de-DE">Deutsch (German)</option>
-                    <option value="zh-CN">中文 (Chinese)</option>
+                    <option value="en-US">EN</option>
+                    <option value="ja-JP">JP</option>
+                    <option value="es-ES">ES</option>
+                    <option value="fr-FR">FR</option>
                 </select>
             </div>
-
             <!-- Search Form -->
             <form id="form">
-                <input type="text" id="search" placeholder="Search movies, series, anime..." class="search">
+                <input type="text" id="search" placeholder="Search..." class="search">
             </form>
         </div>
     </header>
 
+    <!-- Hero Banner (MovieBox Style) -->
+    <div id="hero-banner" class="hero-banner">
+        <div class="hero-content">
+            <span id="hero-badge" class="hero-badge">Trending Now</span>
+            <h1 id="hero-title">Loading...</h1>
+            <p id="hero-meta"></p>
+            <button id="hero-play" class="hero-play-btn">▶ Play Now</button>
+        </div>
+    </div>
+
     <main id="main">
         <div id="content-container"></div>
     </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="loadAllCatalog()">
+            <span class="icon">🏠</span>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="loadOnlyType('movie')">
+            <span class="icon">🎬</span>
+            <span>Movies</span>
+        </div>
+        <div class="nav-item" onclick="loadOnlyType('tv')">
+            <span class="icon">📺</span>
+            <span>Series & Anime</span>
+        </div>
+    </nav>
     
     <!-- Modal Video Player -->
     <div id="videoModal" class="modal">
       <div class="modal-content">
         <span class="close-btn" onclick="closePlayer()">&times;</span>
         
-        <!-- Controls Bar for Seasons & Episodes -->
         <div id="playerBar" class="player-controls">
           <div id="tvControls" class="tv-controls-group" style="display: none;">
             <div class="control-group">
@@ -58,7 +78,7 @@
             </div>
           </div>
           <div class="audio-sub-info">
-            <span>💬 Audio (Dub/Sub) & Subtitles available in player settings (⚙️)</span>
+            <span>⚙️ Audio (Dub/Sub) & CC inside player</span>
           </div>
         </div>
 
