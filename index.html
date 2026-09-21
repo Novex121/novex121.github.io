@@ -16,7 +16,7 @@
         </div>
 
         <div class="header-controls">
-            <!-- Language Picker -->
+            <!-- Language Selector -->
             <div class="lang-group">
                 <label for="languageSelect">🌐</label>
                 <select id="languageSelect" onchange="onLanguageChange()">
@@ -31,22 +31,21 @@
 
             <!-- Search Form -->
             <form id="form">
-                <input type="text" id="search" placeholder="Search..." class="search">
+                <input type="text" id="search" placeholder="Search movies, series, anime..." class="search">
             </form>
         </div>
     </header>
 
     <main id="main">
-        <!-- Dynamic sections populating via app.js -->
         <div id="content-container"></div>
     </main>
     
-    <!-- Modal Player -->
+    <!-- Modal Video Player -->
     <div id="videoModal" class="modal">
       <div class="modal-content">
         <span class="close-btn" onclick="closePlayer()">&times;</span>
         
-        <!-- Controls Bar for Seasons, Episodes, and Audio/Subtitles info -->
+        <!-- Controls Bar for Seasons & Episodes -->
         <div id="playerBar" class="player-controls">
           <div id="tvControls" class="tv-controls-group" style="display: none;">
             <div class="control-group">
@@ -59,7 +58,7 @@
             </div>
           </div>
           <div class="audio-sub-info">
-            <span>💬 Subtitles & Audio (Dub/Sub) available inside video player controls (⚙️ / 💬)</span>
+            <span>💬 Audio (Dub/Sub) & Subtitles available in player settings (⚙️)</span>
           </div>
         </div>
 
