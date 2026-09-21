@@ -1,154 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novex Stream</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #141414; color: #fff; margin: 0; padding: 20px; }
-    h2 { border-bottom: 2px solid #e50914; padding-bottom: 5px; }
-    .media-grid { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; }
-    .media-card { min-width: 150px; width: 150px; cursor: pointer; background: #222; border-radius: 4px; overflow: hidden; transition: transform 0.2s; }
-    .media-card:hover { transform: scale(1.05); }
-    .media-card img { width: 100%; height: 225px; object-fit: cover; }
-    .card-info { padding: 8px; font-size: 12px; }
-    .card-info h3 { font-size: 14px; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    ul#search-history-list { list-style: none; padding: 0; }
-    ul#search-history-list li { background: #333; margin: 5px 0; padding: 8px; cursor: pointer; border-radius: 4px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novex Stream</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#141414">
 </head>
 <body>
+    <header>
+        <div class="logo-container">
+            <h1>NOVEX</h1>
+            <p>Trending Movies</p>
+        </div>
+        <form id="form">
+            <input type="text" id="search" placeholder="Search movies..." class="search">
+        </form>
+    </header>
 
-  <h1>Novex Stream</h1>
+    <main id="main">
+    </main>
 
-  <!-- Sections for your features -->
-  <h2>Trending Series</h2>
-  <div id="trending-series-container" class="media-grid"></div>
-
-  <h2>Highest Rated Movies</h2>
-  <div id="top-rated-container" class="media-grid"></div>
-
-  <h2>Anime (Sub / Dub)</h2>
-  <div id="anime-container" class="media-grid"></div>
-
-  <h2>Search History</h2>
-  <ul id="search-history-list"></ul>
-
-  <!-- JavaScript Logic -->
-  <script>
-    const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
-    const BASE_URL = 'https://api.themoviedb.org/3';
-
-    const ENDPOINTS = {
-      trendingSeries: `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`,
-      topRatedMovies: `${BASE_URL}/movie/top_rated?api_key=${API_KEY}`,
-      animeSubDub: `${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=16&with_original_language=ja`,
-      movieInfo: (id) => `${BASE_URL}/movie/${id}?api_key=${API_KEY}`,
-      tvInfo: (id) => `${BASE_URL}/tv/${id}?api_key=${API_KEY}`,
-      videos: (id, type = 'movie') => `${BASE_URL}/${type}/${id}/videos?api_key=${API_KEY}`
-    };
-
-    const getStorageData = (key) => JSON.parse(localStorage.getItem(key)) || [];
-    const saveStorageData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
-
-    function recordWatchHistory(item) {
-      let history = getStorageData('watchHistory');
-      history = history.filter(i => i.id !== item.id);
-      history.unshift(item);
-      saveStorageData('watchHistory', history);
-    }
-
-    // Close button fix for modals
-    document.addEventListener('click', (event) => {
-      if (event.target.matches('.close-btn') || event.target.closest('.close-btn')) {
-        const modals = document.querySelectorAll('.modal-container, .modal');
-        modals.forEach(modal => {
-          modal.style.display = 'none';
-          const iframe = modal.querySelector('iframe');
-          if (iframe) iframe.src = '';
-        });
-      }
-    });
-
-    async function openMovieInfo(id, type = 'movie') {
-      try {
-        const res = await fetch(type === 'movie' ? ENDPOINTS.movieInfo(id) : ENDPOINTS.tvInfo(id));
-        const data = await res.json();
-        recordWatchHistory(data);
-        console.log('Loaded Info:', data);
-      } catch (err) {
-        console.error('Error loading info:', err);
-      }
-    }
-
-    function renderMediaGrid(items, containerElement) {
-      if (!containerElement) return;
-      containerElement.innerHTML = '';
-      items.forEach(item => {
-        const title = item.title || item.name;
-        const posterPath = item.poster_path 
-          ? `https://image.tmdb.org/t/p/w500${item.poster_path}` 
-          : 'https://via.placeholder.com/500x750?text=No+Image';
-        
-        const card = document.createElement('div');
-        card.className = 'media-card';
-        card.innerHTML = `
-          <img src="${posterPath}" alt="${title}" loading="lazy">
-          <div class="card-info">
-            <h3>${title}</h3>
-            <p>⭐ ${item.vote_average ? item.vote_average.toFixed(1) : 'N/A'}</p>
-          </div>
-        `;
-        card.addEventListener('click', () => {
-          const mediaType = item.media_type || (item.first_air_date ? 'tv' : 'movie');
-          openMovieInfo(item.id, mediaType);
-        });
-        containerElement.appendChild(card);
-      });
-    }
-
-    async function loadTrendingSeries(selector) {
-      try {
-        const res = await fetch(ENDPOINTS.trendingSeries);
-        const data = await res.json();
-        renderMediaGrid(data.results, document.querySelector(selector));
-      } catch (err) { console.error(err); }
-    }
-
-    async function loadTopRated(selector) {
-      try {
-        const res = await fetch(ENDPOINTS.topRatedMovies);
-        const data = await res.json();
-        renderMediaGrid(data.results, document.querySelector(selector));
-      } catch (err) { console.error(err); }
-    }
-
-    async function loadAnime(selector) {
-      try {
-        const res = await fetch(ENDPOINTS.animeSubDub);
-        const data = await res.json();
-        renderMediaGrid(data.results, document.querySelector(selector));
-      } catch (err) { console.error(err); }
-    }
-
-    function renderSearchHistory(selector) {
-      const container = document.querySelector(selector);
-      if (!container) return;
-      const history = getStorageData('searchHistory');
-      container.innerHTML = history.length ? '' : '<li>No recent searches</li>';
-      history.forEach(q => {
-        const li = document.createElement('li');
-        li.textContent = q;
-        container.appendChild(li);
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      loadTrendingSeries('#trending-series-container');
-      loadTopRated('#top-rated-container');
-      loadAnime('#anime-container');
-      renderSearchHistory('#search-history-list');
-    });
-  </script>
+    <script src="app.js"></script>
 </body>
 </html>
