@@ -3,823 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novex Stream - Discover Movies, Series & Anime</title>
+  <title>Novex Stream</title>
   <style>
-    :root {
-      --primary-red: #e50914;
-      --glow-red: rgba(229, 9, 20, 0.6);
-      --bg-dark: #0b0b0e;
-      --bg-gradient: linear-gradient(135deg, #2a0808 0%, #120303 40%, #0b0b0e 100%);
-    }
-
-    body {
-      background: var(--bg-gradient);
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
-    
-    /* Splash & Play Intro Screens */
-    #splash-screen, #playback-intro {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      transition: opacity 0.4s ease;
-    }
-    #playback-intro { display: none; z-index: 10000; }
-    
-    .intro-logo {
-      width: 160px;
-      height: 160px;
-      border-radius: 24px;
-      object-fit: contain;
-      box-shadow: 0 0 30px var(--glow-red);
-      animation: pulseLogo 1.2s infinite alternate;
-    }
-    .intro-subtext {
-      margin-top: 15px;
-      font-size: 12px;
-      letter-spacing: 3px;
-      color: #ff4d4d;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-    @keyframes pulseLogo {
-      0% { transform: scale(0.96); opacity: 0.85; }
-      100% { transform: scale(1.04); opacity: 1; }
-    }
-
-    /* Fullscreen App Layout */
-    .app-container {
-      width: 100%;
-      min-height: 100vh;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      padding-bottom: 80px;
-    }
-
-    /* Top Nav Header */
-    .top-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 20px;
-      background: linear-gradient(to bottom, rgba(11,11,14,0.95) 0%, rgba(11,11,14,0) 100%);
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      box-sizing: border-box;
-      z-index: 10;
-    }
-    .nav-left { display: flex; align-items: center; gap: 12px; }
-    .brand-logo-text { color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: 1px; text-shadow: 0 0 10px var(--glow-red); }
-    .nav-right { display: flex; gap: 12px; font-size: 18px; color: #fff; align-items: center; }
-    
-    .search-input {
-      background: rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.2);
-      padding: 6px 12px;
-      border-radius: 4px;
-      color: #fff;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .lang-select {
-      background: rgba(0,0,0,0.7);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #fff;
-      padding: 5px 10px;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-      outline: none;
-    }
-    
-    /* Category Pills / Genres */
-    .category-pills {
-      display: flex;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 75px 20px 15px 20px;
-      scrollbar-width: none;
-      background: linear-gradient(to bottom, rgba(11,11,14,0.85) 0%, transparent 100%);
-      position: relative;
-      z-index: 10;
-    }
-    .category-pills::-webkit-scrollbar { display: none; }
-    .pill {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 7px 18px;
-      border-radius: 20px;
-      font-size: 13px;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .pill.active, .pill:hover { background: var(--primary-red); border-color: var(--primary-red); color: #fff; font-weight: 600; box-shadow: 0 0 12px var(--glow-red); }
-
-    /* Hero Banner */
-    .hero-banner {
-      position: relative;
-      width: 100%;
-      height: 480px;
-      background-size: cover;
-      background-position: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 30px 20px;
-      box-sizing: border-box;
-      background-image: linear-gradient(to top, #0b0b0e 5%, rgba(11,11,14,0.3) 50%, rgba(0,0,0,0.85) 100%), url('https://image.tmdb.org/t/p/original/qNBAWeZTVFrUKwTZjUw4LCaYmoA.jpg');
-      margin-top: -55px;
-    }
-    .hero-title {
-      font-size: 38px;
-      font-weight: 900;
-      margin: 0 0 8px 0;
-      letter-spacing: 1px;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.9);
-    }
-    .hero-tags {
-      font-size: 12px;
-      color: #ffb3b3;
-      margin-bottom: 15px;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-    }
-    .hero-buttons {
-      display: flex;
-      gap: 12px;
-      max-width: 400px;
-    }
-    .btn {
-      flex: 1;
-      padding: 12px 0;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 14px;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      transition: transform 0.2s;
-    }
-    .btn:hover { transform: scale(1.03); }
-    .btn-play { background: #fff; color: #000; }
-    .btn-info { background: rgba(109, 109, 110, 0.85); color: #fff; backdrop-filter: blur(5px); }
-
-    /* Media Sections */
-    .section-title {
-      font-size: 18px;
-      font-weight: 800;
-      margin: 30px 20px 12px 20px;
-      color: #fff;
-      letter-spacing: 0.5px;
-      border-left: 4px solid var(--primary-red);
-      padding-left: 10px;
-    }
-    .media-row {
-      display: flex;
-      gap: 14px;
-      overflow-x: auto;
-      padding: 0 20px 10px 20px;
-      scrollbar-width: none;
-    }
-    .media-row::-webkit-scrollbar { display: none; }
-    .media-card {
-      min-width: 135px;
-      width: 135px;
-      height: 200px;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #1a1a24;
-      cursor: pointer;
-      flex-shrink: 0;
-      position: relative;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.05);
-    }
-    .media-card:hover { 
-      transform: scale(1.07); 
-      box-shadow: 0 8px 25px var(--glow-red);
-      border-color: rgba(229,9,20,0.4);
-    }
-    .media-card img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .card-badge {
-      position: absolute;
-      top: 6px;
-      left: 6px;
-      color: var(--primary-red);
-      font-weight: 900;
-      font-size: 13px;
-      background: rgba(0, 0, 0, 0.7);
-      padding: 2px 6px;
-      border-radius: 4px;
-      backdrop-filter: blur(4px);
-    }
-
-    /* Modal for Info, Trailers & Resume Play */
-    #info-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 20000;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    .modal-content {
-      background: #16161f;
-      width: 100%;
-      max-width: 550px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(229,9,20,0.3);
-      box-shadow: 0 15px 40px rgba(0,0,0,0.9);
-      display: flex;
-      flex-direction: column;
-    }
-    .modal-header {
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #1f1f2b;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .modal-header h3 { margin: 0; font-size: 18px; color: #fff; }
-    .close-btn { background: none; border: none; color: #aaa; font-size: 26px; cursor: pointer; padding: 0 5px; }
-    .close-btn:hover { color: #fff; }
-    .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; }
-    .modal-body p { color: #ccc; font-size: 14px; line-height: 1.5; margin-bottom: 15px; }
-    .trailer-container { width: 100%; height: 250px; background: #000; margin-bottom: 15px; border-radius: 6px; overflow: hidden; }
-    .trailer-container iframe { width: 100%; height: 100%; border: none; }
-    .modal-actions { padding: 15px 20px; display: flex; gap: 10px; background: #121218; }
-
-    /* Bottom Navigation */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-      background: rgba(11, 11, 14, 0.95);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding: 10px 0;
-      z-index: 1000;
-    }
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 11px;
-      color: #8c8c8c;
-      cursor: pointer;
-      transition: color 0.2s;
-    }
-    .nav-item.active, .nav-item:hover { color: var(--primary-red); }
-    .nav-item span { font-size: 20px; margin-bottom: 2px; }
+    body { font-family: Arial, sans-serif; background: #141414; color: #fff; margin: 0; padding: 20px; }
+    h2 { border-bottom: 2px solid #e50914; padding-bottom: 5px; }
+    .media-grid { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; }
+    .media-card { min-width: 150px; width: 150px; cursor: pointer; background: #222; border-radius: 4px; overflow: hidden; transition: transform 0.2s; }
+    .media-card:hover { transform: scale(1.05); }
+    .media-card img { width: 100%; height: 225px; object-fit: cover; }
+    .card-info { padding: 8px; font-size: 12px; }
+    .card-info h3 { font-size: 14px; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    ul#search-history-list { list-style: none; padding: 0; }
+    ul#search-history-list li { background: #333; margin: 5px 0; padding: 8px; cursor: pointer; border-radius: 4px; }
   </style>
 </head>
 <body>
 
-  <!-- Splash Screen -->
-  <div id="splash-screen">
-    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhcmVhAAABMAAAgAByZWVkAAABOAAAAhxjaHJpAAABUAAAAChuZHJpAAABYAAAAChib2R5AAABbAAAAAxicHJpAAABgAAAAAZoZWFkAAABkAAAACBsZWFkAAABpAAAAAZzZWN0AAABvAAAAAh2aWV3AAAB2AAAAAlzaXJpAAAB7AAAAAxkZXNjAAACDAAAAGZkc2NtAAACLAAAAExhY3BsaQAACTwAAABoY3BwdAAACVwAAAAod3RwdAAACZwAAAAuY3BwdAAACbAAAAAsaVNaQwAACdAAAAAsbVNaQwAACdAAAAAsyVNaQwAACdAAAAAs02FpYwAACeAAAAAwY2hybQAACeQAAAAwIGNtZjAAACe4AAAAOWFiMSAAACfQAAAAOGFkMAAACgAAACRkZXNjAAAAAAAAABpOb3ZleCBTdHJlYW0gTG9nbyBDb3B5cmlnaHQAAAAAAAAAAAAAAABnZ2FkAAAAAAAAAAAAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB0ZXh0AAAAAEFwaXJvAAAAWFlaIAAAAAAAAPNRAADscQAAW9lYWN0JgAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=" alt="Novex Stream Logo" class="intro-logo">
-    <div class="intro-subtext">Loading Novex Stream...</div>
-  </div>
+  <h1>Novex Stream</h1>
 
-  <!-- Playback Intro Screen -->
-  <div id="playback-intro">
-    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhcmVhAAABMAAAgAByZWVkAAABOAAAAhxjaHJpAAABUAAAAChuZHJpAAABYAAAAChib2R5AAABbAAAAAxicHJpAAABgAAAAAZoZWFkAAABkAAAACBsZWFkAAABpAAAAAZzZWN0AAABvAAAAAh2aWV3AAAB2AAAAAlzaXJpAAAB7AAAAAxkZXNjAAACDAAAAGZkc2NtAAACLAAAAExhY3BsaQAACTwAAABoY3BwdAAACVwAAAAod3RwdAAACZwAAAAuY3BwdAAACbAAAAAsaVNaQwAACdAAAAAsbVNaQwAACdAAAAAsyVNaQwAACdAAAAAs02FpYwAACeAAAAAwY2hybQAACeQAAAAwIGNtZjAAACe4AAAAOWFiMSAAACfQAAAAOGFkMAAACgAAACRkZXNjAAAAAAAAABpOb3ZleCBTdHJlYW0gTG9nbyBDb3B5cmlnaHQAAAAAAAAAAAAAAABnZ2FkAAAAAAAAAAAAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB0ZXh0AAAAAEFwaXJvAAAAWFlaIAAAAAAAAPNRAADscQAAW9lYWN0JgAAAAAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=" alt="Novex Stream Logo" class="intro-logo">
-    <div class="intro-subtext">Preparing Player & Trailers...</div>
-  </div>
+  <!-- Sections for your features -->
+  <h2>Trending Series</h2>
+  <div id="trending-series-container" class="media-grid"></div>
 
-  <!-- Info, Trailer & Resume Play Modal -->
-  <div id="info-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modal-title">Title Details</h3>
-        <button class="close-btn" onclick="closeModal()">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="trailer-container" id="modal-trailer-wrapper">
-          <!-- Trailer iframe injected dynamically -->
-        </div>
-        <p id="modal-overview">Loading overview...</p>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-play" id="modal-play-btn" data-i18n="resumePlay">▶ Resume Play</button>
-        <button class="btn btn-info" id="modal-watchlist-btn" data-i18n="watchlist">+ Watch List</button>
-        <button class="btn btn-info" id="modal-favorites-btn" data-i18n="favorite">♥ Favorite</button>
-      </div>
-    </div>
-  </div>
+  <h2>Highest Rated Movies</h2>
+  <div id="top-rated-container" class="media-grid"></div>
 
-  <div class="app-container">
-    <!-- Top Nav -->
-    <div class="top-nav">
-      <div class="nav-left">
-        <div class="brand-logo-text">N</div>
-        <div style="font-size: 14px; font-weight: 600; letter-spacing: 0.5px;">Novex Stream</div>
-      </div>
-      <div class="nav-right">
-        <input type="text" id="site-search" class="search-input" placeholder="Search..." data-i18n-placeholder="searchPlaceholder" oninput="handleSearch(this.value)">
-        <select id="lang-picker" class="lang-select" onchange="changeLanguage(this.value)">
-          <option value="en">EN</option>
-          <option value="es">ES</option>
-          <option value="fr">FR</option>
-          <option value="ja">JA</option>
-        </select>
-      </div>
-    </div>
+  <h2>Anime (Sub / Dub)</h2>
+  <div id="anime-container" class="media-grid"></div>
 
-    <!-- Genres / Category Pills -->
-    <div class="category-pills" id="genre-pills">
-      <div class="pill active" onclick="filterGenre('All', this)" data-i18n="allGenres">All Genres</div>
-      <div class="pill" onclick="filterGenre('Action', this)" data-i18n="action">Action</div>
-      <div class="pill" onclick="filterGenre('Drama', this)" data-i18n="drama">Drama</div>
-      <div class="pill" onclick="filterGenre('Sci-Fi', this)" data-i18n="scifi">Sci-Fi</div>
-      <div class="pill" onclick="filterGenre('Animation', this)" data-i18n="animation">Animation</div>
-      <div class="pill" onclick="filterGenre('Anime', this)" data-i18n="anime">Anime</div>
-    </div>
+  <h2>Search History</h2>
+  <ul id="search-history-list"></ul>
 
-    <!-- Hero Banner -->
-    <div class="hero-banner">
-      <h1 class="hero-title">BRIDGERTON</h1>
-      <div class="hero-tags">Romantic TV Dramas • Period Piece • Exclusive Stream</div>
-      <div class="hero-buttons">
-        <button class="btn btn-play" onclick="triggerPlaybackIntro('Bridgerton')" data-i18n="resumePlay">▶ Resume Play</button>
-        <button class="btn btn-info" onclick="openInfoModal({id: 105, title: 'Bridgerton', overview: 'Wealth, lust, and betrayal set against the backdrop of Regency England.', media_type: 'tv'})" data-i18n="moreInfo">ℹ More Info</button>
-      </div>
-    </div>
-
-    <!-- Recommendations Section -->
-    <div class="section-title" data-i18n="secRecommended">Recommended For You</div>
-    <div id="recommendations-container" class="media-row"></div>
-
-    <!-- Resume Play / Continue Watching -->
-    <div class="section-title" data-i18n="secResume">Resume Play</div>
-    <div id="resume-container" class="media-row"></div>
-
-    <!-- Watch History -->
-    <div class="section-title" data-i18n="secHistory">Watch History</div>
-    <div id="history-container" class="media-row"></div>
-
-    <!-- Watch List -->
-    <div class="section-title" data-i18n="secWatchlist">My Watch List</div>
-    <div id="watchlist-container" class="media-row"></div>
-
-    <!-- Favorites -->
-    <div class="section-title" data-i18n="secFavorites">Favorites</div>
-    <div id="favorites-container" class="media-row"></div>
-
-    <!-- Trending Series -->
-    <div class="section-title" data-i18n="secTrending">Trending Series</div>
-    <div id="series-container" class="media-row"></div>
-
-    <!-- Highest Rated Movies and Series -->
-    <div class="section-title" data-i18n="secTopRated">Highest Rated Movies & Series</div>
-    <div id="top-rated-container" class="media-row"></div>
-
-    <!-- Anime Dub & Sub -->
-    <div class="section-title" data-i18n="secAnime">Anime (Dub & Sub)</div>
-    <div id="anime-container" class="media-row"></div>
-
-    <!-- Search History -->
-    <div class="section-title" data-i18n="secSearchHistory">Search History</div>
-    <div id="search-history-container" class="media-row" style="gap: 8px; flex-wrap: wrap; overflow: visible;"></div>
-
-    <!-- Bottom Navigation Bar -->
-    <div class="bottom-nav">
-      <div class="nav-item active"><span>🏠</span><span data-i18n="navHome">Home</span></div>
-      <div class="nav-item" onclick="scrollToSection('recommendations-container')"><span>✨</span><span data-i18n="navForYou">For You</span></div>
-      <div class="nav-item" onclick="scrollToSection('watchlist-container')"><span>📋</span><span data-i18n="navWatchlist">Watch List</span></div>
-      <div class="nav-item" onclick="scrollToSection('favorites-container')"><span>♥</span><span data-i18n="navFavorites">Favorites</span></div>
-      <div class="nav-item" onclick="scrollToSection('history-container')"><span>⏱️</span><span data-i18n="navHistory">History</span></div>
-    </div>
-  </div>
-
-  <!-- JavaScript with Multi-Language Translation System -->
+  <!-- JavaScript Logic -->
   <script>
-    const translations = {
-      en: {
-        searchPlaceholder: "Search movies, series...",
-        allGenres: "All Genres",
-        action: "Action",
-        drama: "Drama",
-        scifi: "Sci-Fi",
-        animation: "Animation",
-        anime: "Anime",
-        resumePlay: "▶ Resume Play",
-        moreInfo: "ℹ More Info",
-        watchlist: "+ Watch List",
-        favorite: "♥ Favorite",
-        secRecommended: "Recommended For You",
-        secResume: "Resume Play",
-        secHistory: "Watch History",
-        secWatchlist: "My Watch List",
-        secFavorites: "Favorites",
-        secTrending: "Trending Series",
-        secTopRated: "Highest Rated Movies & Series",
-        secAnime: "Anime (Dub & Sub)",
-        secSearchHistory: "Search History",
-        navHome: "Home",
-        navForYou: "For You",
-        navWatchlist: "Watch List",
-        navFavorites: "Favorites",
-        navHistory: "History"
-      },
-      es: {
-        searchPlaceholder: "Buscar películas, series...",
-        allGenres: "Todos los Géneros",
-        action: "Acción",
-        drama: "Drama",
-        scifi: "Ciencia Ficción",
-        animation: "Animación",
-        anime: "Anime",
-        resumePlay: "▶ Reanudar",
-        moreInfo: "ℹ Más Información",
-        watchlist: "+ Mi Lista",
-        favorite: "♥ Favorito",
-        secRecommended: "Recomendado para ti",
-        secResume: "Reanudar Reproducción",
-        secHistory: "Historial de Reproducción",
-        secWatchlist: "Mi Lista",
-        secFavorites: "Favoritos",
-        secTrending: "Series Tendencia",
-        secTopRated: "Películas y Series Mejor Valoradas",
-        secAnime: "Anime (Doblado y Subtitulado)",
-        secSearchHistory: "Historial de Búsqueda",
-        navHome: "Inicio",
-        navForYou: "Para Ti",
-        navWatchlist: "Mi Lista",
-        navFavorites: "Favoritos",
-        navHistory: "Historial"
-      },
-      fr: {
-        searchPlaceholder: "Rechercher des films, séries...",
-        allGenres: "Tous les Genres",
-        action: "Action",
-        drama: "Drame",
-        scifi: "Science-Fiction",
-        animation: "Animation",
-        anime: "Anime",
-        resumePlay: "▶ Reprendre",
-        moreInfo: "ℹ Plus d'infos",
-        watchlist: "+ Ma Liste",
-        favorite: "♥ Favori",
-        secRecommended: "Recommandé pour vous",
-        secResume: "Reprendre la lecture",
-        secHistory: "Historique",
-        secWatchlist: "Ma Liste",
-        secFavorites: "Favoris",
-        secTrending: "Séries Tendances",
-        secTopRated: "Films & Séries Mieux Notés",
-        secAnime: "Anime (VF & VOSTFR)",
-        secSearchHistory: "Historique de Recherche",
-        navHome: "Accueil",
-        navForYou: "Pour Vous",
-        navWatchlist: "Ma Liste",
-        navFavorites: "Favoris",
-        navHistory: "Historique"
-      },
-      ja: {
-        searchPlaceholder: "映画やドラマを検索...",
-        allGenres: "すべてのジャンル",
-        action: "アクション",
-        drama: "ドラマ",
-        scifi: "SF",
-        animation: "アニメーション",
-        anime: "アニメ",
-        resumePlay: "▶ 再生を再開",
-        moreInfo: "ℹ 詳細情報",
-        watchlist: "+ マイリスト",
-        favorite: "♥ お気に入り",
-        secRecommended: "あなたにおすすめ",
-        secResume: "視聴を続ける",
-        secHistory: "視聴履歴",
-        secWatchlist: "マイリスト",
-        secFavorites: "お気に入り",
-        secTrending: "トレンドシリーズ",
-        secTopRated: "高評価の映画＆シリーズ",
-        secAnime: "アニメ (字幕・吹替)",
-        secSearchHistory: "検索履歴",
-        navHome: "ホーム",
-        navForYou: "おすすめ",
-        navWatchlist: "マイリスト",
-        navFavorites: "お気に入り",
-        navHistory: "履歴"
-      }
-    };
-
-    function changeLanguage(lang) {
-      const t = translations[lang] || translations.en;
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (t[key]) el.textContent = t[key];
-      });
-      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
-        if (t[key]) el.placeholder = t[key];
-      });
-      localStorage.setItem('novex_lang', lang);
-    }
-
-    window.addEventListener('load', () => {
-      const savedLang = localStorage.getItem('novex_lang') || 'en';
-      const picker = document.getElementById('lang-picker');
-      if (picker) picker.value = savedLang;
-      changeLanguage(savedLang);
-
-      setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-          splash.style.opacity = '0';
-          setTimeout(() => splash.style.display = 'none', 300);
-        }
-      }, 1200);
-    });
-
-    function triggerPlaybackIntro(title) {
-      const intro = document.getElementById('playback-intro');
-      if (!intro) return;
-      intro.style.display = 'flex';
-      intro.style.opacity = '1';
-
-      setTimeout(() => {
-        intro.style.opacity = '0';
-        setTimeout(() => {
-          intro.style.display = 'none';
-          alert(`Now Resuming: ${title}`);
-        }, 300);
-      }, 1200);
-    }
-
     const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
     const BASE_URL = 'https://api.themoviedb.org/3';
 
-    let allFetchedItems = {
-      series: [],
-      topRated: [],
-      anime: []
+    const ENDPOINTS = {
+      trendingSeries: `${BASE_URL}/trending/tv/week?api_key=${API_KEY}`,
+      topRatedMovies: `${BASE_URL}/movie/top_rated?api_key=${API_KEY}`,
+      animeSubDub: `${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=16&with_original_language=ja`,
+      movieInfo: (id) => `${BASE_URL}/movie/${id}?api_key=${API_KEY}`,
+      tvInfo: (id) => `${BASE_URL}/tv/${id}?api_key=${API_KEY}`,
+      videos: (id, type = 'movie') => `${BASE_URL}/${type}/${id}/videos?api_key=${API_KEY}`
     };
-
-    const instantItems = [
-      { id: 101, title: "Stranger Things", overview: "When a young boy vanishes, a small town uncovers a mystery involving secret experiments.", poster_path: "/49WJfeN0moxb9IPfGn8AIqMGskD.jpg", media_type: "tv", genre_ids: [18, 10765] },
-      { id: 102, title: "Squid Game", overview: "Hundreds of cash-strapped players accept a strange invitation to compete in children's games.", poster_path: "/dwdkbcVWc7eXadMjSFj3xQJdufB.jpg", media_type: "tv", genre_ids: [18, 9648] },
-      { id: 103, title: "One Piece", overview: "In a seafaring world, a young pirate king wannabe seeks out the legendary treasure.", poster_path: "/fcYVyOMm8v8YUSoaXIWlDMrU7Oq.jpg", media_type: "tv", genre_ids: [10759, 35, 16] },
-      { id: 104, title: "Solo Leveling", overview: "In a world where hunters battle monsters, a weak hunter gets a second chance.", poster_path: "/geCRueV3ElhRTr0xtJuPWJt6rMc.jpg", media_type: "tv", genre_ids: [16, 10759, 10765] },
-      { id: 105, title: "Bridgerton", overview: "Wealth, lust, and betrayal set against the backdrop of Regency England.", poster_path: "/qNBAWeZTVFrUKwTZjUw4LCaYmoA.jpg", media_type: "tv", genre_ids: [18, 10749] }
-    ];
 
     const getStorageData = (key) => JSON.parse(localStorage.getItem(key)) || [];
     const saveStorageData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
-    function recordHistory(item, storageKey) {
-      let list = getStorageData(storageKey);
-      list = list.filter((i) => i.id !== item.id);
-      list.unshift(item);
-      saveStorageData(storageKey, list);
-      refreshDynamicRows();
+    function recordWatchHistory(item) {
+      let history = getStorageData('watchHistory');
+      history = history.filter(i => i.id !== item.id);
+      history.unshift(item);
+      saveStorageData('watchHistory', history);
     }
 
-    function toggleFavorite(item) {
-      let favs = getStorageData('favorites');
-      const exists = favs.some((i) => i.id === item.id);
-      if (exists) {
-        favs = favs.filter((i) => i.id !== item.id);
-      } else {
-        favs.unshift(item);
-      }
-      saveStorageData('favorites', favs);
-      refreshDynamicRows();
-    }
-
-    function toggleWatchList(item) {
-      let list = getStorageData('watchlist');
-      const exists = list.some((i) => i.id === item.id);
-      if (exists) {
-        list = list.filter((i) => i.id !== item.id);
-      } else {
-        list.unshift(item);
-      }
-      saveStorageData('watchlist', list);
-      refreshDynamicRows();
-    }
-
-    async function openInfoModal(item) {
-      const title = item.title || item.name;
-      document.getElementById('modal-title').textContent = title;
-      document.getElementById('modal-overview').textContent = item.overview || 'Detailed information and synopsis for this title.';
-      
-      recordHistory(item, 'watchHistory');
-
-      const trailerWrapper = document.getElementById('modal-trailer-wrapper');
-      trailerWrapper.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100%;color:#888;">Loading Trailer...</div>`;
-      
-      const mediaType = item.media_type || (item.first_air_date ? 'tv' : 'movie');
-      try {
-        const res = await fetch(`${BASE_URL}/${mediaType}/${item.id}/videos?api_key=${API_KEY}`);
-        const data = await res.json();
-        const trailer = data.results && data.results.find((v) => v.type === 'Trailer' && v.site === 'YouTube');
-        if (trailer) {
-          trailerWrapper.innerHTML = `<iframe src="https://www.youtube.com/embed/${trailer.key}?autoplay=1" allowfullscreen></iframe>`;
-        } else {
-          trailerWrapper.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100%;color:#888;">No Trailer Available</div>`;
-        }
-      } catch (err) {
-        trailerWrapper.innerHTML = `<div style="display:flex;justify-content:center;align-items:center;height:100%;color:#888;">Trailer Unavailable</div>`;
-      }
-
-      document.getElementById('modal-play-btn').onclick = () => {
-        closeModal();
-        triggerPlaybackIntro(title);
-      };
-
-      document.getElementById('modal-watchlist-btn').onclick = () => {
-        toggleWatchList(item);
-        alert(`Updated Watch List for ${title}`);
-      };
-
-      document.getElementById('modal-favorites-btn').onclick = () => {
-        toggleFavorite(item);
-        alert(`Updated Favorites for ${title}`);
-      };
-
-      document.getElementById('info-modal').style.display = 'flex';
-    }
-
-    function closeModal() {
-      const modal = document.getElementById('info-modal');
-      modal.style.display = 'none';
-      const wrapper = document.getElementById('modal-trailer-wrapper');
-      if (wrapper) wrapper.innerHTML = '';
-    }
-
-    window.addEventListener('click', (e) => {
-      const modal = document.getElementById('info-modal');
-      if (e.target === modal) {
-        closeModal();
+    // Close button fix for modals
+    document.addEventListener('click', (event) => {
+      if (event.target.matches('.close-btn') || event.target.closest('.close-btn')) {
+        const modals = document.querySelectorAll('.modal-container, .modal');
+        modals.forEach(modal => {
+          modal.style.display = 'none';
+          const iframe = modal.querySelector('iframe');
+          if (iframe) iframe.src = '';
+        });
       }
     });
 
-    function renderRow(items, containerElement) {
+    async function openMovieInfo(id, type = 'movie') {
+      try {
+        const res = await fetch(type === 'movie' ? ENDPOINTS.movieInfo(id) : ENDPOINTS.tvInfo(id));
+        const data = await res.json();
+        recordWatchHistory(data);
+        console.log('Loaded Info:', data);
+      } catch (err) {
+        console.error('Error loading info:', err);
+      }
+    }
+
+    function renderMediaGrid(items, containerElement) {
       if (!containerElement) return;
       containerElement.innerHTML = '';
-      const displayItems = (items && items.length > 0) ? items : instantItems;
-      displayItems.forEach((item) => {
-        const posterPath = item.poster_path && item.poster_path.startsWith('/')
+      items.forEach(item => {
+        const title = item.title || item.name;
+        const posterPath = item.poster_path 
           ? `https://image.tmdb.org/t/p/w500${item.poster_path}` 
-          : 'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg';
+          : 'https://via.placeholder.com/500x750?text=No+Image';
         
         const card = document.createElement('div');
         card.className = 'media-card';
         card.innerHTML = `
-          <div class="card-badge">N</div>
-          <img src="${posterPath}" alt="poster" loading="lazy">
+          <img src="${posterPath}" alt="${title}" loading="lazy">
+          <div class="card-info">
+            <h3>${title}</h3>
+            <p>⭐ ${item.vote_average ? item.vote_average.toFixed(1) : 'N/A'}</p>
+          </div>
         `;
-        
         card.addEventListener('click', () => {
-          openInfoModal(item);
+          const mediaType = item.media_type || (item.first_air_date ? 'tv' : 'movie');
+          openMovieInfo(item.id, mediaType);
         });
-        
         containerElement.appendChild(card);
       });
     }
 
-    function filterGenre(genreName, element) {
-      document.querySelectorAll('#genre-pills .pill').forEach(p => p.classList.remove('active'));
-      if (element) element.classList.add('active');
-
-      const matchGenre = (item) => {
-        if (genreName === 'All') return true;
-        const gIds = item.genre_ids || [];
-        const titleLower = (item.title || item.name || '').toLowerCase();
-        const overviewLower = (item.overview || '').toLowerCase();
-
-        if (genreName === 'Action') return gIds.includes(28) || gIds.includes(10759) || titleLower.includes('action');
-        if (genreName === 'Drama') return gIds.includes(18) || overviewLower.includes('drama');
-        if (genreName === 'Sci-Fi') return gIds.includes(878) || gIds.includes(10765) || overviewLower.includes('sci-fi');
-        if (genreName === 'Animation') return gIds.includes(16);
-        if (genreName === 'Anime') return gIds.includes(16) || overviewLower.includes('anime') || titleLower.includes('solo') || titleLower.includes('one piece');
-        return true;
-      };
-
-      const sList = allFetchedItems.series.length > 0 ? allFetchedItems.series : instantItems;
-      const tList = allFetchedItems.topRated.length > 0 ? allFetchedItems.topRated : instantItems;
-      const aList = allFetchedItems.anime.length > 0 ? allFetchedItems.anime : instantItems;
-
-      renderRow(genreName === 'All' ? sList : sList.filter(matchGenre), document.querySelector('#series-container'));
-      renderRow(genreName === 'All' ? tList : tList.filter(matchGenre), document.querySelector('#top-rated-container'));
-      renderRow(genreName === 'All' ? aList : aList.filter(matchGenre), document.querySelector('#anime-container'));
+    async function loadTrendingSeries(selector) {
+      try {
+        const res = await fetch(ENDPOINTS.trendingSeries);
+        const data = await res.json();
+        renderMediaGrid(data.results, document.querySelector(selector));
+      } catch (err) { console.error(err); }
     }
 
-    function refreshDynamicRows() {
-      renderRow(getStorageData('watchHistory'), document.querySelector('#history-container'));
-      renderRow(getStorageData('watchHistory'), document.querySelector('#resume-container'));
-      renderRow(getStorageData('watchlist'), document.querySelector('#watchlist-container'));
-      renderRow(getStorageData('favorites'), document.querySelector('#favorites-container'));
-      
-      let recs = getStorageData('watchHistory');
-      if (recs.length === 0) recs = instantItems;
-      renderRow(recs, document.querySelector('#recommendations-container'));
-
-      const searchContainer = document.querySelector('#search-history-container');
-      const searchHistory = getStorageData('searchHistory');
-      if (searchContainer) {
-        searchContainer.innerHTML = '';
-        if (searchHistory.length === 0) {
-          searchContainer.innerHTML = `<div style="color:#777; font-size:13px; padding:5px;">No search history yet.</div>`;
-        } else {
-          searchHistory.forEach((q) => {
-            const tag = document.createElement('div');
-            tag.className = 'pill';
-            tag.textContent = q;
-            tag.onclick = () => {
-              const searchInput = document.getElementById('site-search');
-              if (searchInput) searchInput.value = q;
-              handleSearch(q);
-            };
-            searchContainer.appendChild(tag);
-          });
-        }
-      }
+    async function loadTopRated(selector) {
+      try {
+        const res = await fetch(ENDPOINTS.topRatedMovies);
+        const data = await res.json();
+        renderMediaGrid(data.results, document.querySelector(selector));
+      } catch (err) { console.error(err); }
     }
 
-    function handleSearch(query) {
-      if (!query || !query.trim()) return;
-      let history = getStorageData('searchHistory');
-      history = history.filter((q) => q.toLowerCase() !== query.toLowerCase());
-      history.unshift(query);
-      saveStorageData('searchHistory', history);
-      refreshDynamicRows();
+    async function loadAnime(selector) {
+      try {
+        const res = await fetch(ENDPOINTS.animeSubDub);
+        const data = await res.json();
+        renderMediaGrid(data.results, document.querySelector(selector));
+      } catch (err) { console.error(err); }
     }
 
-    function scrollToSection(id) {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    function renderSearchHistory(selector) {
+      const container = document.querySelector(selector);
+      if (!container) return;
+      const history = getStorageData('searchHistory');
+      container.innerHTML = history.length ? '' : '<li>No recent searches</li>';
+      history.forEach(q => {
+        const li = document.createElement('li');
+        li.textContent = q;
+        container.appendChild(li);
+      });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      renderRow(instantItems, document.querySelector('#series-container'));
-      renderRow(instantItems, document.querySelector('#top-rated-container'));
-      renderRow(instantItems, document.querySelector('#anime-container'));
-      refreshDynamicRows();
-
-      setTimeout(async () => {
-        try {
-          const seriesRes = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
-          const seriesData = await seriesRes.json();
-          if (seriesData.results) {
-            allFetchedItems.series = seriesData.results;
-            renderRow(seriesData.results, document.querySelector('#series-container'));
-          }
-
-          const topRes = await fetch(`${BASE_URL}/movie/top_rated?api_key=${API_KEY}`);
-          const topData = await topRes.json();
-          if (topData.results) {
-            allFetchedItems.topRated = topData.results;
-            renderRow(topData.results, document.querySelector('#top-rated-container'));
-          }
-
-          const animeRes = await fetch(`${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=16&with_original_language=ja`);
-          const animeData = await animeRes.json();
-          if (animeData.results) {
-            allFetchedItems.anime = animeData.results;
-            renderRow(animeData.results, document.querySelector('#anime-container'));
-          }
-        } catch (e) {
-          // Fallback handled smoothly
-        }
-      }, 100);
+      loadTrendingSeries('#trending-series-container');
+      loadTopRated('#top-rated-container');
+      loadAnime('#anime-container');
+      renderSearchHistory('#search-history-list');
     });
   </script>
 </body>
