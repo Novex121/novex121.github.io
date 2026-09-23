@@ -15,7 +15,7 @@
   <header class="app-header">
     <form id="form" class="search-bar-container">
       <i class="fa-solid fa-magnifying-glass search-icon"></i>
-      <input type="text" id="search" placeholder="Search movies, series, anime...">
+      <input type="text" id="search" placeholder="Search movies, series, anime, k-drama...">
     </form>
     
     <nav class="category-tabs">
@@ -46,10 +46,17 @@
     <div class="modal-content">
       <span class="close-btn" onclick="closePlayer()">&times;</span>
       
-      <!-- TV / Anime Controls & Next Episode Action -->
+      <!-- TV / Anime Controls with Dub/Sub Switcher & Next Episode -->
       <div id="tvControls" class="tv-controls" style="display:none;">
         <select id="seasonSelect" onchange="onSeasonChange()"></select>
         <select id="episodeSelect" onchange="onEpisodeChange()"></select>
+        
+        <!-- Crunchyroll / Netflix style Audio Track Selector -->
+        <select id="audioTrackSelect" onchange="onAudioTrackChange()">
+          <option value="dub">English Dub</option>
+          <option value="sub" selected>Japanese Audio (Sub)</option>
+        </select>
+
         <button id="nextEpisodeBtn" class="next-ep-btn" onclick="playNextEpisode()">Next Ep <i class="fa-solid fa-forward"></i></button>
       </div>
 

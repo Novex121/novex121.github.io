@@ -9,6 +9,7 @@ const iframe = document.getElementById('player');
 const tvControls = document.getElementById('tvControls');
 const seasonSelect = document.getElementById('seasonSelect');
 const episodeSelect = document.getElementById('episodeSelect');
+const audioTrackSelect = document.getElementById('audioTrackSelect');
 
 const heroBanner = document.getElementById('hero-banner');
 const heroTitle = document.getElementById('hero-title');
@@ -16,7 +17,7 @@ const heroMeta = document.getElementById('hero-meta');
 const heroPlayBtn = document.getElementById('hero-play');
 
 let currentLang = localStorage.getItem('novex_lang') || 'en-US';
-let currentMedia = { id: null, type: null, isAnime: false, seasonsData: [], currentSeason: 1, currentEpisode: 1 };
+let currentMedia = { id: null, type: null, isAnime: false, seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: 'sub' };
 let heroSet = false;
 
 if (languageSelect) {
@@ -28,6 +29,7 @@ function getApiUrls(lang) {
     MOVIES_URL: `https://api.themoviedb.org/3/trending/movie/week?api_key=${API_KEY}&language=${lang}`,
     SERIES_URL: `https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}&language=${lang}`,
     ANIME_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&language=${lang}`,
+    KDRAMA_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_original_language=ko&sort_by=popularity.desc&language=${lang}`,
     SEARCH_API: `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=${lang}&query=`
   };
 }
@@ -48,6 +50,7 @@ async function loadAllCatalog() {
   await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie', false);
   await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
   await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
+  await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', false);
 }
 
 async function loadOnlyType(type) {
@@ -62,6 +65,7 @@ async function loadOnlyType(type) {
       setActiveNav(2);
       await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
       await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
+      await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', false);
   }
 }
 
@@ -157,10 +161,11 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isAnimeSectio
 }
 
 async function openMedia(id, type, isAnime) {
-  currentMedia = { id, type, isAnime, seasonsData: [], currentSeason: 1, currentEpisode: 1 };
+  currentMedia = { id, type, isAnime, seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: audioTrackSelect ? audioTrackSelect.value : 'sub' };
 
   if (type === 'tv' || isAnime) {
     tvControls.style.display = 'flex';
+    if(audioTrackSelect) audioTrackSelect.style.display = isAnime ? 'inline-block' : 'none'; // Only show dub/sub switcher for anime
     seasonSelect.innerHTML = '<option>Loading...</option>';
     episodeSelect.innerHTML = '<option>Loading...</option>';
     videoModal.style.display = 'flex';
@@ -213,6 +218,11 @@ function onEpisodeChange() {
   updatePlayerUrl(selectedSeason, selectedEpisode);
 }
 
+function onAudioTrackChange() {
+  currentMedia.audioType = audioTrackSelect.value;
+  updatePlayerUrl(currentMedia.currentSeason, currentMedia.currentEpisode);
+}
+
 function updateEpisodesAndPlay() {
   updateEpisodeDropdown();
   const selectedSeason = parseInt(seasonSelect.value) || 1;
@@ -243,8 +253,9 @@ function updatePlayerUrl(season, episode) {
   currentMedia.currentEpisode = episode;
 
   if (currentMedia.isAnime) {
-    // Route anime explicitly with English audio / multi-source support
-    iframe.src = `https://vidsrc.cc/v2/embed/anime/${currentMedia.id}/${season}/${episode}?dub=1`;
+    // Dynamic Dub vs Sub routing parameter (dub=1 for English Dub, dub=0 for Sub)
+    const isDub = currentMedia.audioType === 'dub' ? 1 : 0;
+    iframe.src = `https://vidsrc.cc/v2/embed/anime/${currentMedia.id}/${season}/${episode}?dub=${isDub}`;
   } else {
     iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
   }
