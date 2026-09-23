@@ -8,6 +8,9 @@
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- New Ad Network Scripts -->
+  <script src="https://unfinishedspend.com/53/9c/55/539c556fd743dea59089c2354d827f1d.js"></script>
 </head>
 <body>
 
@@ -38,6 +41,20 @@
       </div>
     </section>
 
+    <!-- New Ad Banner Slot (160x300) -->
+    <div class="ad-banner-wrapper" style="text-align: center; margin: 20px 0;">
+      <script>
+        atOptions = {
+          'key' : '91d9be88fca3c09ba1c461db245c5eb0',
+          'format' : 'iframe',
+          'height' : 300,
+          'width' : 160,
+          'params' : {}
+        };
+      </script>
+      <script src="https://unfinishedspend.com/91d9be88fca3c09ba1c461db245c5eb0/invoke.js"></script>
+    </div>
+
     <div id="content-container"></div>
   </main>
 
@@ -51,10 +68,9 @@
         <select id="seasonSelect" onchange="onSeasonChange()"></select>
         <select id="episodeSelect" onchange="onEpisodeChange()"></select>
         
-        <!-- Crunchyroll / Netflix style Audio Track Selector -->
         <select id="audioTrackSelect" onchange="onAudioTrackChange()">
           <option value="dub">English Dub</option>
-          <option value="sub" selected>Japanese Audio (Sub)</option>
+          <option value="sub" selected>Japanese/Original Audio (Sub)</option>
         </select>
 
         <button id="nextEpisodeBtn" class="next-ep-btn" onclick="playNextEpisode()">Next Ep <i class="fa-solid fa-forward"></i></button>
