@@ -10,14 +10,13 @@ const tvControls = document.getElementById('tvControls');
 const seasonSelect = document.getElementById('seasonSelect');
 const episodeSelect = document.getElementById('episodeSelect');
 
-// Hero Banner elements
 const heroBanner = document.getElementById('hero-banner');
 const heroTitle = document.getElementById('hero-title');
 const heroMeta = document.getElementById('hero-meta');
 const heroPlayBtn = document.getElementById('hero-play');
 
 let currentLang = localStorage.getItem('novex_lang') || 'en-US';
-let currentMedia = { id: null, type: null, seasonsData: [] };
+let currentMedia = { id: null, type: null, isAnime: false, seasonsData: [], currentSeason: 1, currentEpisode: 1 };
 let heroSet = false;
 
 if (languageSelect) {
@@ -46,9 +45,9 @@ async function loadAllCatalog() {
   setActiveNav(0);
   const urls = getApiUrls(currentLang);
   
-  await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie');
-  await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv');
-  await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv');
+  await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie', false);
+  await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
+  await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
 }
 
 async function loadOnlyType(type) {
@@ -58,11 +57,11 @@ async function loadOnlyType(type) {
   
   if (type === 'movie') {
       setActiveNav(1);
-      await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie');
+      await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie', false);
   } else if (type === 'tv') {
       setActiveNav(2);
-      await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv');
-      await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv');
+      await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
+      await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
   }
 }
 
@@ -78,46 +77,57 @@ function onLanguageChange() {
   loadAllCatalog();
 }
 
-async function fetchAndRenderSection(url, title, defaultType) {
+async function fetchAndRenderSection(url, title, defaultType, isAnimeSection) {
   try {
     const response = await fetch(url);
     const data = await response.json();
     if (data.results && data.results.length > 0) {
       if (!heroSet) {
-          setHeroBanner(data.results[0], defaultType);
+          setHeroBanner(data.results[0], defaultType, isAnimeSection);
           heroSet = true;
       }
-      renderSection(title, data.results, defaultType);
+      renderSection(title, data.results, defaultType, isAnimeSection);
     }
   } catch (error) {
     console.error(`Error fetching ${title}:`, error);
   }
 }
 
-function setHeroBanner(item, defaultType) {
+function setHeroBanner(item, defaultType, isAnimeSection) {
     const displayTitle = item.title || item.name || item.original_name;
     const mediaType = getMediaType(item, defaultType);
     const backdropPath = item.backdrop_path || item.poster_path;
     const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+    const isAnime = isAnimeSection || (item.genre_ids && item.genre_ids.includes(16));
     
-    if (backdropPath) {
+    if (backdropPath && heroBanner) {
         heroBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${backdropPath})`;
     }
-    heroTitle.textContent = displayTitle;
-    heroMeta.textContent = `⭐ ${rating} | ${mediaType === 'tv' ? 'Series / Anime' : 'Movie'}`;
-    heroPlayBtn.onclick = () => openMedia(item.id, mediaType);
+    if (heroTitle) heroTitle.textContent = displayTitle;
+    if (heroMeta) heroMeta.textContent = `⭐ ${rating} | ${isAnime ? 'Anime (Dub/Sub)' : (mediaType === 'tv' ? 'Series' : 'Movie')}`;
+    if (heroPlayBtn) heroPlayBtn.onclick = () => openMedia(item.id, mediaType, isAnime);
 }
 
-function renderSection(sectionTitle, items, defaultType = 'movie') {
+function renderSection(sectionTitle, items, defaultType = 'movie', isAnimeSection = false) {
   const sectionEl = document.createElement('div');
+  sectionEl.classList.add('media-row-section');
+
+  const headerDiv = document.createElement('div');
+  headerDiv.classList.add('section-header');
 
   const titleEl = document.createElement('h2');
-  titleEl.classList.add('section-title');
   titleEl.textContent = sectionTitle;
-  sectionEl.appendChild(titleEl);
+  headerDiv.appendChild(titleEl);
+
+  const seeAllEl = document.createElement('span');
+  seeAllEl.classList.add('see-all');
+  seeAllEl.innerHTML = 'All &gt;';
+  headerDiv.appendChild(seeAllEl);
+
+  sectionEl.appendChild(headerDiv);
 
   const rowEl = document.createElement('div');
-  rowEl.classList.add('movie-row');
+  rowEl.classList.add('horizontal-scroll-row');
 
   items.forEach(item => {
     const displayTitle = item.title || item.name || item.original_name;
@@ -126,18 +136,17 @@ function renderSection(sectionTitle, items, defaultType = 'movie') {
 
     if (posterPath && displayTitle) {
       const card = document.createElement('div');
-      card.classList.add('movie');
-      card.onclick = () => openMedia(item.id, mediaType);
+      card.classList.add('media-card');
+      
+      const isAnime = isAnimeSection || (item.genre_ids && item.genre_ids.includes(16)) || sectionTitle.toLowerCase().includes('anime');
+      card.onclick = () => openMedia(item.id, mediaType, isAnime);
 
-      const isAnime = item.genre_ids && item.genre_ids.includes(16);
       const badgeText = mediaType === 'tv' ? (isAnime ? 'Anime' : 'Series') : 'Movie';
 
       card.innerHTML = `
         <span class="badge">${badgeText}</span>
         <img src="https://image.tmdb.org/t/p/w300${posterPath}" loading="lazy" alt="${displayTitle}">
-        <div class="movie-info">
-          <h3>${displayTitle}</h3>
-        </div>
+        <p>${displayTitle}</p>
       `;
       rowEl.appendChild(card);
     }
@@ -147,11 +156,10 @@ function renderSection(sectionTitle, items, defaultType = 'movie') {
   contentContainer.appendChild(sectionEl);
 }
 
-// Fixed Media Player Logic with robust Server Routing for Series & Anime
-async function openMedia(id, type) {
-  currentMedia = { id, type, seasonsData: [] };
+async function openMedia(id, type, isAnime) {
+  currentMedia = { id, type, isAnime, seasonsData: [], currentSeason: 1, currentEpisode: 1 };
 
-  if (type === 'tv') {
+  if (type === 'tv' || isAnime) {
     tvControls.style.display = 'flex';
     seasonSelect.innerHTML = '<option>Loading...</option>';
     episodeSelect.innerHTML = '<option>Loading...</option>';
@@ -174,7 +182,6 @@ async function openMedia(id, type) {
     }
   } else {
     tvControls.style.display = 'none';
-    // Using vidsrc.me for movies as well for high reliability
     iframe.src = `https://vidsrc.me/embed/movie?tmdb=${id}`;
     videoModal.style.display = 'flex';
   }
@@ -194,9 +201,10 @@ function populateSeasonDropdown(seasons) {
 function onSeasonChange() {
   updateEpisodeDropdown();
   const selectedSeason = parseInt(seasonSelect.value) || 1;
-  const selectedEpisode = 1; 
+  currentMedia.currentSeason = selectedSeason;
+  currentMedia.currentEpisode = 1;
   if(episodeSelect.options.length > 0) episodeSelect.value = "1";
-  updatePlayerUrl(selectedSeason, selectedEpisode);
+  updatePlayerUrl(selectedSeason, 1);
 }
 
 function onEpisodeChange() {
@@ -231,8 +239,38 @@ function populateFallbackDropdowns() {
 }
 
 function updatePlayerUrl(season, episode) {
-  // Using vidsrc.me for reliable Series and Anime playback with dub/sub streams
-  iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
+  currentMedia.currentSeason = season;
+  currentMedia.currentEpisode = episode;
+
+  if (currentMedia.isAnime) {
+    // Route anime explicitly with English audio / multi-source support
+    iframe.src = `https://vidsrc.cc/v2/embed/anime/${currentMedia.id}/${season}/${episode}?dub=1`;
+  } else {
+    iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
+  }
+}
+
+function playNextEpisode() {
+  let nextEp = currentMedia.currentEpisode + 1;
+  let currentSeasonObj = currentMedia.seasonsData.find(s => s.season_number === currentMedia.currentSeason);
+  let maxEpisodes = currentSeasonObj && currentSeasonObj.episode_count ? currentSeasonObj.episode_count : 24;
+
+  if (nextEp > maxEpisodes) {
+    let nextSeasonNum = currentMedia.currentSeason + 1;
+    let nextSeasonObj = currentMedia.seasonsData.find(s => s.season_number === nextSeasonNum);
+    if (nextSeasonObj) {
+      currentMedia.currentSeason = nextSeasonNum;
+      seasonSelect.value = nextSeasonNum;
+      updateEpisodeDropdown();
+      nextEp = 1;
+    } else {
+      return; 
+    }
+  }
+
+  currentMedia.currentEpisode = nextEp;
+  episodeSelect.value = nextEp;
+  updatePlayerUrl(currentMedia.currentSeason, nextEp);
 }
 
 function closePlayer() {
@@ -240,35 +278,36 @@ function closePlayer() {
   videoModal.style.display = 'none';
 }
 
-// Search Logic (Filtered to only return movies and tv series/anime)
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const searchTerm = search.value.trim();
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const searchTerm = search.value.trim();
 
-  if (searchTerm && searchTerm !== '') {
-    contentContainer.innerHTML = '';
-    heroSet = false;
-    const urls = getApiUrls(currentLang);
-    try {
-      const res = await fetch(urls.SEARCH_API + encodeURIComponent(searchTerm));
-      const data = await res.json();
-      if (data.results && data.results.length > 0) {
-        const validMedia = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
-        if(validMedia.length > 0) {
-            setHeroBanner(validMedia[0], validMedia[0].media_type);
-            heroSet = true;
+    if (searchTerm && searchTerm !== '') {
+      contentContainer.innerHTML = '';
+      heroSet = false;
+      const urls = getApiUrls(currentLang);
+      try {
+        const res = await fetch(urls.SEARCH_API + encodeURIComponent(searchTerm));
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          const validMedia = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
+          if(validMedia.length > 0) {
+              setHeroBanner(validMedia[0], validMedia[0].media_type, false);
+              heroSet = true;
+          }
+          renderSection(`Search Results for "${searchTerm}"`, validMedia, 'movie', false);
+        } else {
+          contentContainer.innerHTML = `<h2 class="section-title" style="padding: 20px;">No results found for "${searchTerm}"</h2>`;
+          if (heroBanner) heroBanner.style.backgroundImage = 'none';
+          if (heroTitle) heroTitle.textContent = 'No Results';
         }
-        renderSection(`Search Results for "${searchTerm}"`, validMedia);
-      } else {
-        contentContainer.innerHTML = `<h2 class="section-title">No results found for "${searchTerm}"</h2>`;
-        heroBanner.style.backgroundImage = 'none';
-        heroTitle.textContent = 'No Results';
-      }
-    } catch (err) { console.error('Search error:', err); }
-    search.value = '';
-  } else {
-    loadAllCatalog();
-  }
-});
+      } catch (err) { console.error('Search error:', err); }
+      search.value = '';
+    } else {
+      loadAllCatalog();
+    }
+  });
+}
 
 document.addEventListener('DOMContentLoaded', loadAllCatalog);

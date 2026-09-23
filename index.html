@@ -1,91 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novex Stream</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#141414">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novex Stream - Watch Free Movies, Series & Anime</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <header>
-        <div class="logo-container">
-            <h1>NOVEX</h1>
-        </div>
 
-        <div class="header-controls">
-            <!-- Language Selector -->
-            <div class="lang-group">
-                <select id="languageSelect" onchange="onLanguageChange()">
-                    <option value="en-US">EN</option>
-                    <option value="ja-JP">JP</option>
-                    <option value="es-ES">ES</option>
-                    <option value="fr-FR">FR</option>
-                </select>
-            </div>
-            <!-- Search Form -->
-            <form id="form">
-                <input type="text" id="search" placeholder="Search..." class="search">
-            </form>
-        </div>
-    </header>
-
-    <!-- Hero Banner (MovieBox Style) -->
-    <div id="hero-banner" class="hero-banner">
-        <div class="hero-content">
-            <span id="hero-badge" class="hero-badge">Trending Now</span>
-            <h1 id="hero-title">Loading...</h1>
-            <p id="hero-meta"></p>
-            <button id="hero-play" class="hero-play-btn">▶ Play Now</button>
-        </div>
-    </div>
-
-    <main id="main">
-        <div id="content-container"></div>
-    </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="loadAllCatalog()">
-            <span class="icon">🏠</span>
-            <span>Home</span>
-        </div>
-        <div class="nav-item" onclick="loadOnlyType('movie')">
-            <span class="icon">🎬</span>
-            <span>Movies</span>
-        </div>
-        <div class="nav-item" onclick="loadOnlyType('tv')">
-            <span class="icon">📺</span>
-            <span>Series & Anime</span>
-        </div>
-    </nav>
+  <!-- Top Navigation & Search -->
+  <header class="app-header">
+    <form id="form" class="search-bar-container">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="search" placeholder="Search movies, series, anime...">
+    </form>
     
-    <!-- Modal Video Player -->
-    <div id="videoModal" class="modal">
-      <div class="modal-content">
-        <span class="close-btn" onclick="closePlayer()">&times;</span>
-        
-        <div id="playerBar" class="player-controls">
-          <div id="tvControls" class="tv-controls-group" style="display: none;">
-            <div class="control-group">
-              <label for="seasonSelect">Season:</label>
-              <select id="seasonSelect" onchange="onSeasonChange()"></select>
-            </div>
-            <div class="control-group">
-              <label for="episodeSelect">Episode:</label>
-              <select id="episodeSelect" onchange="onEpisodeChange()"></select>
-            </div>
-          </div>
-          <div class="audio-sub-info">
-            <span>⚙️ Audio (Dub/Sub) & CC inside player</span>
-          </div>
-        </div>
+    <nav class="category-tabs">
+      <button class="tab active" onclick="loadAllCatalog()">Trending</button>
+      <button class="tab" onclick="loadOnlyType('movie')">Movie</button>
+      <button class="tab" onclick="loadOnlyType('tv')">TV Series</button>
+      <select id="languageSelect" onchange="onLanguageChange()" style="display:none;">
+        <option value="en-US">English</option>
+      </select>
+    </nav>
+  </header>
 
-        <iframe id="player" src="" allowfullscreen frameborder="0"></iframe>
+  <!-- Main Content Feed -->
+  <main class="content-feed">
+    <section class="hero-banner" id="hero-banner">
+      <div class="hero-content">
+        <h1 id="hero-title">Loading...</h1>
+        <p id="hero-meta">⭐ -- | Loading...</p>
+        <button id="hero-play" class="hero-play-btn"><i class="fa-solid fa-play"></i> Watch Now</button>
+      </div>
+    </section>
+
+    <div id="content-container"></div>
+  </main>
+
+  <!-- Expanded Full Screen Video Player Modal -->
+  <div id="videoModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closePlayer()">&times;</span>
+      
+      <!-- TV / Anime Controls & Next Episode Action -->
+      <div id="tvControls" class="tv-controls" style="display:none;">
+        <select id="seasonSelect" onchange="onSeasonChange()"></select>
+        <select id="episodeSelect" onchange="onEpisodeChange()"></select>
+        <button id="nextEpisodeBtn" class="next-ep-btn" onclick="playNextEpisode()">Next Ep <i class="fa-solid fa-forward"></i></button>
+      </div>
+
+      <div class="iframe-container">
+        <iframe id="player" src="" frameborder="0" allowfullscreen></iframe>
       </div>
     </div>
+  </div>
 
-    <script src="app.js"></script>
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <a href="#" class="nav-item active" onclick="loadAllCatalog()">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="#" class="nav-item">
+      <i class="fa-solid fa-compass"></i>
+      <span>Explore</span>
+    </a>
+    <div class="nav-center-button">
+      <div class="center-logo-circle">N</div>
+    </div>
+    <a href="#" class="nav-item">
+      <i class="fa-solid fa-bookmark"></i>
+      <span>Saved</span>
+    </a>
+    <a href="#" class="nav-item">
+      <i class="fa-solid fa-user"></i>
+      <span>Me</span>
+    </a>
+  </nav>
+
+  <script src="app.js"></script>
 </body>
 </html>
