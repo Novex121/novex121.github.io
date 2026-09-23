@@ -165,7 +165,7 @@ async function openMedia(id, type, isAnime) {
 
   if (type === 'tv' || isAnime) {
     tvControls.style.display = 'flex';
-    if(audioTrackSelect) audioTrackSelect.style.display = isAnime ? 'inline-block' : 'none'; // Only show dub/sub switcher for anime
+    if(audioTrackSelect) audioTrackSelect.style.display = isAnime ? 'inline-block' : 'none';
     seasonSelect.innerHTML = '<option>Loading...</option>';
     episodeSelect.innerHTML = '<option>Loading...</option>';
     videoModal.style.display = 'flex';
@@ -252,13 +252,8 @@ function updatePlayerUrl(season, episode) {
   currentMedia.currentSeason = season;
   currentMedia.currentEpisode = episode;
 
-  if (currentMedia.isAnime) {
-    // Dynamic Dub vs Sub routing parameter (dub=1 for English Dub, dub=0 for Sub)
-    const isDub = currentMedia.audioType === 'dub' ? 1 : 0;
-    iframe.src = `https://vidsrc.cc/v2/embed/anime/${currentMedia.id}/${season}/${episode}?dub=${isDub}`;
-  } else {
-    iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
-  }
+  // Route anime and TV series reliably through primary embed source with built-in server/audio switches
+  iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
 }
 
 function playNextEpisode() {
