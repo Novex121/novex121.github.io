@@ -17,7 +17,7 @@ const heroMeta = document.getElementById('hero-meta');
 const heroPlayBtn = document.getElementById('hero-play');
 
 let currentLang = localStorage.getItem('novex_lang') || 'en-US';
-let currentMedia = { id: null, type: null, isAnime: false, seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: 'sub' };
+let currentMedia = { id: null, type: null, isDubbable: false, seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: 'sub' };
 let heroSet = false;
 
 if (languageSelect) {
@@ -30,6 +30,7 @@ function getApiUrls(lang) {
     SERIES_URL: `https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}&language=${lang}`,
     ANIME_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&language=${lang}`,
     KDRAMA_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_original_language=ko&sort_by=popularity.desc&language=${lang}`,
+    CDRAMA_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_original_language=zh&sort_by=popularity.desc&language=${lang}`,
     SEARCH_API: `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=${lang}&query=`
   };
 }
@@ -50,7 +51,8 @@ async function loadAllCatalog() {
   await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie', false);
   await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
   await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
-  await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', false);
+  await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', true);
+  await fetchAndRenderSection(urls.CDRAMA_URL, 'C-Dramas', 'tv', true);
 }
 
 async function loadOnlyType(type) {
@@ -65,7 +67,8 @@ async function loadOnlyType(type) {
       setActiveNav(2);
       await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
       await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
-      await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', false);
+      await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', true);
+      await fetchAndRenderSection(urls.CDRAMA_URL, 'C-Dramas', 'tv', true);
   }
 }
 
@@ -81,38 +84,38 @@ function onLanguageChange() {
   loadAllCatalog();
 }
 
-async function fetchAndRenderSection(url, title, defaultType, isAnimeSection) {
+async function fetchAndRenderSection(url, title, defaultType, isDubbableSection) {
   try {
     const response = await fetch(url);
     const data = await response.json();
     if (data.results && data.results.length > 0) {
       if (!heroSet) {
-          setHeroBanner(data.results[0], defaultType, isAnimeSection);
+          setHeroBanner(data.results[0], defaultType, isDubbableSection);
           heroSet = true;
       }
-      renderSection(title, data.results, defaultType, isAnimeSection);
+      renderSection(title, data.results, defaultType, isDubbableSection);
     }
   } catch (error) {
     console.error(`Error fetching ${title}:`, error);
   }
 }
 
-function setHeroBanner(item, defaultType, isAnimeSection) {
+function setHeroBanner(item, defaultType, isDubbableSection) {
     const displayTitle = item.title || item.name || item.original_name;
     const mediaType = getMediaType(item, defaultType);
     const backdropPath = item.backdrop_path || item.poster_path;
     const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-    const isAnime = isAnimeSection || (item.genre_ids && item.genre_ids.includes(16));
+    const isDubbable = isDubbableSection || (item.genre_ids && item.genre_ids.includes(16)) || ['ja', 'ko', 'zh'].includes(item.original_language);
     
     if (backdropPath && heroBanner) {
         heroBanner.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${backdropPath})`;
     }
     if (heroTitle) heroTitle.textContent = displayTitle;
-    if (heroMeta) heroMeta.textContent = `⭐ ${rating} | ${isAnime ? 'Anime (Dub/Sub)' : (mediaType === 'tv' ? 'Series' : 'Movie')}`;
-    if (heroPlayBtn) heroPlayBtn.onclick = () => openMedia(item.id, mediaType, isAnime);
+    if (heroMeta) heroMeta.textContent = `⭐ ${rating} | ${isDubbable ? 'Dub/Sub Available' : (mediaType === 'tv' ? 'Series' : 'Movie')}`;
+    if (heroPlayBtn) heroPlayBtn.onclick = () => openMedia(item.id, mediaType, isDubbable);
 }
 
-function renderSection(sectionTitle, items, defaultType = 'movie', isAnimeSection = false) {
+function renderSection(sectionTitle, items, defaultType = 'movie', isDubbableSection = false) {
   const sectionEl = document.createElement('div');
   sectionEl.classList.add('media-row-section');
 
@@ -142,10 +145,10 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isAnimeSectio
       const card = document.createElement('div');
       card.classList.add('media-card');
       
-      const isAnime = isAnimeSection || (item.genre_ids && item.genre_ids.includes(16)) || sectionTitle.toLowerCase().includes('anime');
-      card.onclick = () => openMedia(item.id, mediaType, isAnime);
+      const isDubbable = isDubbableSection || (item.genre_ids && item.genre_ids.includes(16)) || ['ja', 'ko', 'zh'].includes(item.original_language) || sectionTitle.toLowerCase().includes('anime') || sectionTitle.toLowerCase().includes('drama');
+      card.onclick = () => openMedia(item.id, mediaType, isDubbable);
 
-      const badgeText = mediaType === 'tv' ? (isAnime ? 'Anime' : 'Series') : 'Movie';
+      const badgeText = mediaType === 'tv' ? (isDubbable ? 'Dub/Sub' : 'Series') : 'Movie';
 
       card.innerHTML = `
         <span class="badge">${badgeText}</span>
@@ -160,12 +163,12 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isAnimeSectio
   contentContainer.appendChild(sectionEl);
 }
 
-async function openMedia(id, type, isAnime) {
-  currentMedia = { id, type, isAnime, seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: audioTrackSelect ? audioTrackSelect.value : 'sub' };
+async function openMedia(id, type, isDubbable) {
+  currentMedia = { id, type, isDubbable, seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: audioTrackSelect ? audioTrackSelect.value : 'sub' };
 
-  if (type === 'tv' || isAnime) {
+  if (type === 'tv' || isDubbable) {
     tvControls.style.display = 'flex';
-    if(audioTrackSelect) audioTrackSelect.style.display = isAnime ? 'inline-block' : 'none';
+    if(audioTrackSelect) audioTrackSelect.style.display = isDubbable ? 'inline-block' : 'none'; // Show Dub/Sub selector for Anime, K-Drama, & C-Drama
     seasonSelect.innerHTML = '<option>Loading...</option>';
     episodeSelect.innerHTML = '<option>Loading...</option>';
     videoModal.style.display = 'flex';
@@ -251,8 +254,6 @@ function populateFallbackDropdowns() {
 function updatePlayerUrl(season, episode) {
   currentMedia.currentSeason = season;
   currentMedia.currentEpisode = episode;
-
-  // Route anime and TV series reliably through primary embed source with built-in server/audio switches
   iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
 }
 
