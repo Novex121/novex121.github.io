@@ -10,9 +10,9 @@
   "description": "Novex Stream is a platform built to allow users to stream their favorite shows and movies at no cost.",
   "icons": [
     {
-      "src": "IMG-20260924-WA0007.jpg",
+      "src": "IMG-20260924-WA0000.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
