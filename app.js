@@ -10,6 +10,7 @@ const seasonSelect = document.getElementById('seasonSelect');
 const episodeSelect = document.getElementById('episodeSelect');
 const searchHistoryContainer = document.getElementById('searchHistoryContainer');
 const historyChips = document.getElementById('historyChips');
+const installAppBtn = document.getElementById('installAppBtn');
 
 const heroBanner = document.getElementById('hero-banner');
 const heroTitle = document.getElementById('hero-title');
@@ -18,7 +19,25 @@ const heroPlayBtn = document.getElementById('hero-play');
 
 let currentLang = 'en-US';
 let currentMedia = { id: null, type: null, isDubbable: false, title: '', poster: '', seasonsData: [], currentSeason: 1, currentEpisode: 1 };
-let heroSet = false;
+let deferredPrompt = null;
+
+// PWA Install Prompt Handler
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (installAppBtn) installAppBtn.style.display = 'block';
+});
+
+async function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      if (installAppBtn) installAppBtn.style.display = 'none';
+    }
+    deferredPrompt = null;
+  }
+}
 
 // IndexedDB Setup for In-App Secure Sandbox Offline Downloads
 const DB_NAME = 'NovexDownloadsDB';
@@ -127,7 +146,6 @@ async function safeFetch(url, fallbackData) {
 
 async function loadAllCatalog() {
   contentContainer.innerHTML = '';
-  heroSet = false;
   hideSearchHistory();
   const urls = getApiUrls(currentLang);
 
@@ -138,7 +156,6 @@ async function loadAllCatalog() {
 
   if (movies.length > 0) {
     setHeroBanner(movies[0], 'movie', false);
-    heroSet = true;
   }
 
   renderSection('Trending Movies', movies, 'movie', false);
@@ -208,17 +225,16 @@ async function openMedia(id, type, isDubbable, title, poster) {
 
   await updateModalActionButtons();
 
-  // Show Modal & Force Fullscreen Landscape Mode
   videoModal.style.display = 'flex';
 
   if (videoModal.requestFullscreen) {
-    videoModal.requestFullscreen().catch(err => console.log("Fullscreen request note:", err));
+    videoModal.requestFullscreen().catch(err => console.log(err));
   } else if (videoModal.webkitRequestFullscreen) {
     videoModal.webkitRequestFullscreen();
   }
 
   if (screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock('landscape').catch(err => console.log('Orientation lock note:', err));
+    screen.orientation.lock('landscape').catch(err => console.log(err));
   }
 
   if (type === 'tv' || isDubbable) {
@@ -249,9 +265,8 @@ function closePlayer() {
   iframe.src = '';
   videoModal.style.display = 'none';
 
-  // Exit Fullscreen & Unlock Orientation
   if (document.fullscreenElement && document.exitFullscreen) {
-    document.exitFullscreen().catch(err => console.log("Exit fullscreen note:", err));
+    document.exitFullscreen().catch(err => console.log(err));
   }
   if (screen.orientation && screen.orientation.unlock) {
     screen.orientation.unlock();
@@ -311,12 +326,11 @@ function updatePlayerUrl(season, episode) {
   iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
 }
 
-// In-App Secure Sandbox Download Handler
 async function toggleAppDownload() {
   const isDownloaded = await isDownloadedInApp(currentMedia.id);
   if (isDownloaded) {
     await removeAppDownload(currentMedia.id);
-    alert(`"${currentMedia.title}" removed from app downloads.`);
+    alert(`"${currentMedia.title}" removed from offline app downloads.`);
   } else {
     await saveDownloadToApp({
       id: currentMedia.id,
@@ -325,7 +339,7 @@ async function toggleAppDownload() {
       poster: currentMedia.poster,
       downloadedAt: new Date().toISOString()
     });
-    alert(`"${currentMedia.title}" successfully downloaded to app storage! Check your Downloads section.`);
+    alert(`"${currentMedia.title}" successfully downloaded for offline viewing!`);
   }
   await updateModalActionButtons();
 }
@@ -395,7 +409,6 @@ if (search) search.addEventListener('focus', showSearchHistory);
 
 async function executeSearch(searchTerm) {
   contentContainer.innerHTML = '';
-  heroSet = false;
   hideSearchHistory();
   saveSearchHistory(searchTerm);
 
@@ -405,7 +418,6 @@ async function executeSearch(searchTerm) {
   
   if (validMedia.length > 0) {
       setHeroBanner(validMedia[0], validMedia[0].media_type, false);
-      heroSet = true;
       renderSection(`Search Results for "${searchTerm}"`, validMedia, 'movie', false);
   } else {
       contentContainer.innerHTML = `<h2 style="padding: 20px;">No results found for "${searchTerm}"</h2>`;
@@ -421,10 +433,9 @@ if (form) {
   });
 }
 
-// Service Worker Registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
   });
 }
 
