@@ -74,9 +74,36 @@
   </main>
 
   <!-- Expanded Full Screen Video Player Modal -->
-  <div id="videoModal" class="modal" style="display:none;">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closePlayer()">&times;</span>
+  <!-- Video Player Modal Template snippet -->
+<div id="videoModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close-btn" onclick="closePlayer()">&times;</span>
+    
+    <!-- Action buttons row under title/player -->
+    <div class="modal-actions" style="margin-bottom: 10px; display: flex; gap: 15px; align-items: center;">
+      <button id="modalFavBtn" onclick="toggleCurrentFavorite()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" title="Favorite">
+        <i class="fa-solid fa-heart"></i>
+      </button>
+      <button id="modalWatchlistBtn" onclick="toggleCurrentWatchlist()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" title="Watchlist">
+        <i class="fa-solid fa-bookmark"></i>
+      </button>
+      <!-- In-App Download Button Added Here -->
+      <button id="modalDownloadBtn" onclick="toggleAppDownload()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" title="Download to App Storage">
+        <i class="fa-solid fa-download"></i>
+      </button>
+    </div>
+
+    <!-- TV Controls (Seasons / Episodes) -->
+    <div id="tvControls" style="display:none; gap:10px; margin-bottom:10px;">
+      <select id="seasonSelect" onchange="onSeasonChange()"></select>
+      <select id="episodeSelect" onchange="onEpisodeChange()"></select>
+    </div>
+
+    <div class="video-container">
+      <iframe id="player" src="" frameborder="0" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
       
       <!-- TV / Anime Controls with Dub/Sub Switcher, Watchlist, Ratings & Next Episode -->
       <div id="tvControls" class="tv-controls" style="display:none;">
