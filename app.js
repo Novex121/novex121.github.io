@@ -20,7 +20,7 @@ let currentLang = 'en-US';
 let currentMedia = { id: null, type: null, isDubbable: false, title: '', poster: '', seasonsData: [], currentSeason: 1, currentEpisode: 1 };
 let heroSet = false;
 
-// IndexedDB Setup for In-App Secure Sandbox Downloads
+// IndexedDB Setup for In-App Secure Sandbox Offline Downloads
 const DB_NAME = 'NovexDownloadsDB';
 const STORE_NAME = 'downloads';
 
@@ -311,7 +311,7 @@ function updatePlayerUrl(season, episode) {
   iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
 }
 
-// In-App Sandbox Download Handler
+// In-App Secure Sandbox Download Handler
 async function toggleAppDownload() {
   const isDownloaded = await isDownloadedInApp(currentMedia.id);
   if (isDownloaded) {
@@ -408,7 +408,7 @@ async function executeSearch(searchTerm) {
       heroSet = true;
       renderSection(`Search Results for "${searchTerm}"`, validMedia, 'movie', false);
   } else {
-      contentContent.innerHTML = `<h2 style="padding: 20px;">No results found for "${searchTerm}"</h2>`;
+      contentContainer.innerHTML = `<h2 style="padding: 20px;">No results found for "${searchTerm}"</h2>`;
   }
 }
 
