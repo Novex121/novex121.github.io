@@ -17,10 +17,15 @@
 
   <!-- Top Navigation & Search -->
   <header class="app-header">
-    <form id="form" class="search-bar-container">
-      <i class="fa-solid fa-magnifying-glass search-icon"></i>
-      <input type="text" id="search" placeholder="Search movies, series, anime, k-drama...">
-    </form>
+    <div class="header-top-row">
+      <form id="form" class="search-bar-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="search" placeholder="Search movies, series, anime, k-drama...">
+      </form>
+      <button id="installAppBtn" class="install-btn" style="display:none;" onclick="triggerInstallPrompt()">
+        <i class="fa-solid fa-download"></i> Install
+      </button>
+    </div>
     
     <nav class="category-tabs">
       <button class="tab active" onclick="loadAllCatalog()">Trending</button>
@@ -85,7 +90,7 @@
         <button id="nextEpisodeBtn" class="next-ep-btn" onclick="playNextEpisode()">Next Ep <i class="fa-solid fa-forward"></i></button>
       </div>
 
-      <!-- Action Toolbar inside Modal (Rating, Watchlist, Favorite, Offline Note) -->
+      <!-- Action Toolbar inside Modal -->
       <div class="modal-action-bar">
         <button id="modalFavBtn" onclick="toggleCurrentFavorite()"><i class="fa-solid fa-heart"></i> Favorite</button>
         <button id="modalWatchlistBtn" onclick="toggleCurrentWatchlist()"><i class="fa-solid fa-bookmark"></i> Watchlist</button>

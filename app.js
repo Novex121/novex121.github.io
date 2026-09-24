@@ -1,4 +1,4 @@
-const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
+2const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
 
 const contentContainer = document.getElementById('content-container');
 const form = document.getElementById('form');
@@ -17,10 +17,12 @@ const heroTitle = document.getElementById('hero-title');
 const heroMeta = document.getElementById('hero-meta');
 const heroPlayBtn = document.getElementById('hero-play');
 const heroFavBtn = document.getElementById('hero-fav-btn');
+const installAppBtn = document.getElementById('installAppBtn');
 
-let currentLang = localStorage.getItem('novex_lang') || 'en-US';
+let currentLang = 'en-US';
 let currentMedia = { id: null, type: null, isDubbable: false, title: '', poster: '', seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: 'sub' };
 let heroSet = false;
+let deferredPrompt = null;
 
 // LocalStorage Persistence Helpers
 function getWatchlist() { return JSON.parse(localStorage.getItem('novex_watchlist')) || []; }
@@ -66,7 +68,6 @@ function getMediaType(item, defaultType) {
 async function loadAllCatalog() {
   contentContainer.innerHTML = '';
   heroSet = false;
-  setActiveNav(0);
   hideSearchHistory();
   const urls = getApiUrls(currentLang);
   
@@ -85,19 +86,12 @@ async function loadOnlyType(type) {
   const urls = getApiUrls(currentLang);
   
   if (type === 'movie') {
-      setActiveNav(0);
       await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie', false);
   } else if (type === 'tv') {
-      setActiveNav(0);
       await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
       await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
       await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', true);
   }
-}
-
-function setActiveNav(index) {
-    const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-    navItems.forEach(item => item.classList.remove('active'));
 }
 
 async function fetchAndRenderSection(url, title, defaultType, isDubbableSection) {
@@ -144,7 +138,6 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isDubbableSec
   const titleEl = document.createElement('h2');
   titleEl.textContent = sectionTitle;
   headerDiv.appendChild(titleEl);
-
   sectionEl.appendChild(headerDiv);
 
   const rowEl = document.createElement('div');
@@ -177,7 +170,6 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isDubbableSec
   contentContainer.appendChild(sectionEl);
 }
 
-// Recommendations based on recent Watchlist / Favorites
 async function loadRecommendationsSection() {
   const favorites = getFavorites();
   if (favorites.length === 0) return;
@@ -210,7 +202,6 @@ async function openMedia(id, type, isDubbable, title, poster) {
     try {
       const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=${currentLang}`);
       const data = await res.json();
-
       let validSeasons = (data.seasons || []).filter(s => s.season_number > 0);
       if (validSeasons.length === 0 && data.seasons) { validSeasons = data.seasons; }
 
@@ -250,9 +241,7 @@ function onSeasonChange() {
 }
 
 function onEpisodeChange() {
-  const selectedSeason = parseInt(seasonSelect.value) || 1;
-  const selectedEpisode = parseInt(episodeSelect.value) || 1;
-  updatePlayerUrl(selectedSeason, selectedEpisode);
+  updatePlayerUrl(parseInt(seasonSelect.value) || 1, parseInt(episodeSelect.value) || 1);
 }
 
 function onAudioTrackChange() {
@@ -262,9 +251,7 @@ function onAudioTrackChange() {
 
 function updateEpisodesAndPlay() {
   updateEpisodeDropdown();
-  const selectedSeason = parseInt(seasonSelect.value) || 1;
-  const selectedEpisode = 1;
-  updatePlayerUrl(selectedSeason, selectedEpisode);
+  updatePlayerUrl(parseInt(seasonSelect.value) || 1, 1);
 }
 
 function updateEpisodeDropdown() {
@@ -304,9 +291,7 @@ function playNextEpisode() {
       seasonSelect.value = nextSeasonNum;
       updateEpisodeDropdown();
       nextEp = 1;
-    } else {
-      return; 
-    }
+    } else { return; }
   }
 
   currentMedia.currentEpisode = nextEp;
@@ -319,15 +304,11 @@ function closePlayer() {
   videoModal.style.display = 'none';
 }
 
-// Watchlist, Favorites & Ratings Handlers
 function toggleCurrentFavorite() {
   let favs = getFavorites();
   const index = favs.findIndex(f => f.id === currentMedia.id);
-  if (index > -1) {
-    favs.splice(index, 1);
-  } else {
-    favs.push({ id: currentMedia.id, type: currentMedia.type, title: currentMedia.title, poster: currentMedia.poster });
-  }
+  if (index > -1) favs.splice(index, 1);
+  else favs.push({ id: currentMedia.id, type: currentMedia.type, title: currentMedia.title, poster: currentMedia.poster });
   saveFavorites(favs);
   updateModalActionButtons();
   updateHeroFavoriteButton();
@@ -337,11 +318,8 @@ function toggleHeroFavorite() {
   if (!currentMedia.heroItem) return;
   let favs = getFavorites();
   const index = favs.findIndex(f => f.id === currentMedia.heroItem.id);
-  if (index > -1) {
-    favs.splice(index, 1);
-  } else {
-    favs.push(currentMedia.heroItem);
-  }
+  if (index > -1) favs.splice(index, 1);
+  else favs.push(currentMedia.heroItem);
   saveFavorites(favs);
   updateHeroFavoriteButton();
 }
@@ -356,11 +334,8 @@ function updateHeroFavoriteButton() {
 function toggleCurrentWatchlist() {
   let watchlist = getWatchlist();
   const index = watchlist.findIndex(w => w.id === currentMedia.id);
-  if (index > -1) {
-    watchlist.splice(index, 1);
-  } else {
-    watchlist.push({ id: currentMedia.id, type: currentMedia.type, title: currentMedia.title, poster: currentMedia.poster });
-  }
+  if (index > -1) watchlist.splice(index, 1);
+  else watchlist.push({ id: currentMedia.id, type: currentMedia.type, title: currentMedia.title, poster: currentMedia.poster });
   saveWatchlist(watchlist);
   updateModalActionButtons();
 }
@@ -368,18 +343,11 @@ function toggleCurrentWatchlist() {
 function updateModalActionButtons() {
   const favs = getFavorites();
   const watchlist = getWatchlist();
-  
   const modalFavBtn = document.getElementById('modalFavBtn');
   const modalWatchlistBtn = document.getElementById('modalWatchlistBtn');
 
-  if (modalFavBtn) {
-    const isFav = favs.some(f => f.id === currentMedia.id);
-    modalFavBtn.style.color = isFav ? 'var(--accent-red)' : 'white';
-  }
-  if (modalWatchlistBtn) {
-    const isWl = watchlist.some(w => w.id === currentMedia.id);
-    modalWatchlistBtn.style.color = isWl ? 'var(--accent-red)' : 'white';
-  }
+  if (modalFavBtn) modalFavBtn.style.color = favs.some(f => f.id === currentMedia.id) ? 'var(--accent-red)' : 'white';
+  if (modalWatchlistBtn) modalWatchlistBtn.style.color = watchlist.some(w => w.id === currentMedia.id) ? 'var(--accent-red)' : 'white';
 }
 
 function rateCurrentMedia(score) {
@@ -399,15 +367,13 @@ function updateUserRatingDisplay() {
 function loadWatchlist() {
   contentContainer.innerHTML = '';
   hideSearchHistory();
-  const watchlist = getWatchlist();
-  renderCustomGrid('My Watchlist', watchlist);
+  renderCustomGrid('My Watchlist', getWatchlist());
 }
 
 function loadFavorites() {
   contentContainer.innerHTML = '';
   hideSearchHistory();
-  const favorites = getFavorites();
-  renderCustomGrid('My Favorites', favorites);
+  renderCustomGrid('My Favorites', getFavorites());
 }
 
 function loadUserProfile() {
@@ -451,7 +417,6 @@ function renderCustomGrid(title, items) {
   contentContainer.appendChild(sectionEl);
 }
 
-// Search History Display
 function showSearchHistory() {
   const history = getSearchHistory();
   if (history.length > 0 && searchHistoryContainer) {
@@ -461,10 +426,7 @@ function showSearchHistory() {
       const chip = document.createElement('span');
       chip.classList.add('search-chip');
       chip.textContent = term;
-      chip.onclick = () => {
-        search.value = term;
-        executeSearch(term);
-      };
+      chip.onclick = () => { search.value = term; executeSearch(term); };
       historyChips.appendChild(chip);
     });
   }
@@ -474,9 +436,7 @@ function hideSearchHistory() {
   if (searchHistoryContainer) searchHistoryContainer.style.display = 'none';
 }
 
-if (search) {
-  search.addEventListener('focus', showSearchHistory);
-}
+if (search) search.addEventListener('focus', showSearchHistory);
 
 async function executeSearch(searchTerm) {
   contentContainer.innerHTML = '';
@@ -510,12 +470,33 @@ if (form) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', loadAllCatalog);
-// Register Service Worker for Offline PWA Support
+// PWA Install Prompt Handler
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (installAppBtn) installAppBtn.style.display = 'flex';
+});
+
+async function triggerInstallPrompt() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    if (installAppBtn) installAppBtn.style.display = 'none';
+  } else {
+    alert("To install this app on your device, use your browser menu and select 'Add to Home Screen' or 'Install App'.");
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  if (installAppBtn) installAppBtn.style.display = 'none';
+});
+
+// Service Worker Registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then((reg) => console.log('Service Worker registered successfully:', reg.scope))
-      .catch((err) => console.error('Service Worker registration failed:', err));
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
   });
 }
+
+document.addEventListener('DOMContentLoaded', loadAllCatalog);

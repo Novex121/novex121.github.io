@@ -28,13 +28,20 @@ body {
   padding: 12px 16px;
 }
 
+.header-top-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
 .search-bar-container {
   display: flex;
   align-items: center;
   background: var(--surface-color);
   border-radius: 20px;
   padding: 10px 14px;
-  margin-bottom: 10px;
+  flex-grow: 1;
 }
 
 .search-bar-container input {
@@ -49,6 +56,21 @@ body {
 
 .search-icon {
   color: var(--text-muted);
+}
+
+.install-btn {
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 .category-tabs {
@@ -171,11 +193,6 @@ body {
 .section-header h2 {
   font-size: 16px;
   font-weight: 700;
-}
-
-.see-all {
-  color: var(--text-muted);
-  font-size: 13px;
 }
 
 .horizontal-scroll-row {
@@ -383,4 +400,42 @@ body {
   font-weight: bold;
   font-size: 18px;
   box-shadow: 0 4px 10px rgba(229, 9, 20, 0.4);
+}
+
+/* Tablet & Large Screen Optimizations */
+@media (min-width: 768px) {
+  .horizontal-scroll-row {
+    gap: 16px;
+    padding-bottom: 15px;
+  }
+  .media-card {
+    flex: 0 0 140px;
+  }
+  .media-card img {
+    height: 210px;
+  }
+  .hero-banner {
+    height: 350px;
+    padding: 30px;
+  }
+  .hero-content h1 {
+    font-size: 32px;
+  }
+  .modal-content {
+    width: 90vw;
+    height: 90vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .media-card {
+    flex: 0 0 160px;
+  }
+  .media-card img {
+    height: 240px;
+  }
+  .content-feed {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
 }
