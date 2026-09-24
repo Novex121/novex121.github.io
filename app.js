@@ -8,7 +8,6 @@ const iframe = document.getElementById('player');
 const tvControls = document.getElementById('tvControls');
 const seasonSelect = document.getElementById('seasonSelect');
 const episodeSelect = document.getElementById('episodeSelect');
-const audioTrackSelect = document.getElementById('audioTrackSelect');
 const searchHistoryContainer = document.getElementById('searchHistoryContainer');
 const historyChips = document.getElementById('historyChips');
 
@@ -16,7 +15,6 @@ const heroBanner = document.getElementById('hero-banner');
 const heroTitle = document.getElementById('hero-title');
 const heroMeta = document.getElementById('hero-meta');
 const heroPlayBtn = document.getElementById('hero-play');
-const heroFavBtn = document.getElementById('hero-fav-btn');
 
 let currentLang = 'en-US';
 let currentMedia = { id: null, type: null, isDubbable: false, title: '', poster: '', seasonsData: [], currentSeason: 1, currentEpisode: 1 };
@@ -78,7 +76,7 @@ async function isDownloadedInApp(id) {
   return downloads.some(d => d.id === id);
 }
 
-// Fallback hardcoded movies/shows
+// Fallback data
 const FALLBACK_MOVIES = [
   { id: 693134, title: "Dune: Part Two", poster_path: "/8b8R8l88Qje9dn9OE8PY05NxlIF.jpg", backdrop_path: "/xOMo8DxXY7P6n0w6UAM8xPVDZco.jpg", vote_average: 8.2, media_type: "movie" },
   { id: 823464, title: "Godzilla x Kong: The New Empire", poster_path: "/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg", backdrop_path: "/z121dSTR7PY9KxKuvwiIFSYW8cf.jpg", vote_average: 7.2, media_type: "movie" }
@@ -88,12 +86,6 @@ const FALLBACK_SERIES = [
   { id: 94605, name: "Arcane", poster_path: "/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg", backdrop_path: "/rkB4LyZxwHNHWPRZZrA5c0l1Q7W.jpg", vote_average: 8.7, media_type: "tv" },
   { id: 1399, name: "Game of Thrones", poster_path: "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg", backdrop_path: "/suopoADq0k8YZr4dQXcU6pToj6s.jpg", vote_average: 8.4, media_type: "tv" }
 ];
-
-function getWatchlist() { return JSON.parse(localStorage.getItem('novex_watchlist')) || []; }
-function saveWatchlist(list) { localStorage.setItem('novex_watchlist', JSON.stringify(list)); }
-
-function getFavorites() { return JSON.parse(localStorage.getItem('novex_favorites')) || []; }
-function saveFavorites(list) { localStorage.setItem('novex_favorites', JSON.stringify(list)); }
 
 function getSearchHistory() { return JSON.parse(localStorage.getItem('novex_search_history')) || []; }
 function saveSearchHistory(term) {
@@ -216,19 +208,23 @@ async function openMedia(id, type, isDubbable, title, poster) {
 
   await updateModalActionButtons();
 
-  // Force landscape orientation for the video player view if supported by the device
+  // Show Modal & Force Fullscreen Landscape Mode
+  videoModal.style.display = 'flex';
+
+  if (videoModal.requestFullscreen) {
+    videoModal.requestFullscreen().catch(err => console.log("Fullscreen request note:", err));
+  } else if (videoModal.webkitRequestFullscreen) {
+    videoModal.webkitRequestFullscreen();
+  }
+
   if (screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock('landscape').catch(err => {
-      console.log('Orientation lock to landscape requires fullscreen or mobile context:', err);
-    });
+    screen.orientation.lock('landscape').catch(err => console.log('Orientation lock note:', err));
   }
 
   if (type === 'tv' || isDubbable) {
     tvControls.style.display = 'flex';
-    if(audioTrackSelect) audioTrackSelect.style.display = isDubbable ? 'inline-block' : 'none';
     seasonSelect.innerHTML = '<option>Loading...</option>';
     episodeSelect.innerHTML = '<option>Loading...</option>';
-    videoModal.style.display = 'flex';
 
     try {
       const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=${currentLang}`);
@@ -246,7 +242,6 @@ async function openMedia(id, type, isDubbable, title, poster) {
   } else {
     tvControls.style.display = 'none';
     iframe.src = `https://vidsrc.me/embed/movie?tmdb=${id}`;
-    videoModal.style.display = 'flex';
   }
 }
 
@@ -254,7 +249,10 @@ function closePlayer() {
   iframe.src = '';
   videoModal.style.display = 'none';
 
-  // Unlock orientation back to default when closing the player
+  // Exit Fullscreen & Unlock Orientation
+  if (document.fullscreenElement && document.exitFullscreen) {
+    document.exitFullscreen().catch(err => console.log("Exit fullscreen note:", err));
+  }
   if (screen.orientation && screen.orientation.unlock) {
     screen.orientation.unlock();
   }
@@ -313,11 +311,6 @@ function updatePlayerUrl(season, episode) {
   iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}`;
 }
 
-function closePlayer() {
-  iframe.src = '';
-  videoModal.style.display = 'none';
-}
-
 // In-App Sandbox Download Handler
 async function toggleAppDownload() {
   const isDownloaded = await isDownloadedInApp(currentMedia.id);
@@ -332,7 +325,7 @@ async function toggleAppDownload() {
       poster: currentMedia.poster,
       downloadedAt: new Date().toISOString()
     });
-    alert(`"${currentMedia.title}" successfully downloaded to app sandbox storage!`);
+    alert(`"${currentMedia.title}" successfully downloaded to app storage! Check your Downloads section.`);
   }
   await updateModalActionButtons();
 }
@@ -355,7 +348,7 @@ async function loadDownloads() {
   sectionEl.innerHTML = `<div class="section-header"><h2>My App Downloads (Offline Ready)</h2></div>`;
 
   if (downloads.length === 0) {
-    sectionEl.innerHTML += `<p style="padding: 15px; color: var(--text-muted);">No titles downloaded to app storage yet. Tap the download icon on any movie or series.</p>`;
+    sectionEl.innerHTML += `<p style="padding: 15px; color: var(--text-muted);">No titles downloaded to app storage yet. Tap the download icon while viewing any movie or series.</p>`;
     contentContainer.appendChild(sectionEl);
     return;
   }
@@ -415,7 +408,7 @@ async function executeSearch(searchTerm) {
       heroSet = true;
       renderSection(`Search Results for "${searchTerm}"`, validMedia, 'movie', false);
   } else {
-      contentContainer.innerHTML = `<h2 style="padding: 20px;">No results found for "${searchTerm}"</h2>`;
+      contentContent.innerHTML = `<h2 style="padding: 20px;">No results found for "${searchTerm}"</h2>`;
   }
 }
 
