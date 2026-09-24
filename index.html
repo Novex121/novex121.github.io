@@ -9,7 +9,7 @@
   <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- PLACE YOUR AD NETWORK SCRIPTS HERE (e.g., Adsterra, Monetag, etc.) -->
+  <!-- PLACE YOUR AD NETWORK SCRIPTS HERE -->
   <!-- <script type="text/javascript" src="your-ad-script-url.js"></script> -->
 
   <style>
@@ -34,9 +34,17 @@
       z-index: 1000;
     }
     .logo { color: var(--accent-red); font-size: 24px; font-weight: bold; text-decoration: none; }
-    .nav-links { display: flex; gap: 15px; align-items: center; }
-    .nav-links button { background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 16px; }
+    .nav-links { display: flex; gap: 12px; align-items: center; }
+    .nav-links button { background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 15px; }
     .nav-links button:hover { color: var(--accent-red); }
+    
+    /* App Install Button Styling */
+    #installAppBtn {
+      background: var(--accent-red) !important;
+      padding: 6px 12px;
+      border-radius: 4px;
+      display: none; /* Shown dynamically when PWA prompt is ready */
+    }
 
     /* Search Bar */
     .search-form { display: flex; gap: 5px; }
@@ -153,6 +161,7 @@
     <div class="nav-links">
       <button onclick="loadAllCatalog()">Home</button>
       <button onclick="loadDownloads()">📥 Downloads</button>
+      <button id="installAppBtn" onclick="installPWA()">📲 Install App</button>
     </div>
     <form class="search-form" id="form">
       <input type="text" id="search" placeholder="Search movies, series...">
@@ -163,7 +172,6 @@
   <!-- Top Banner Ad Integration Slot -->
   <div class="ad-banner-container" id="top-ad-slot">
     <span style="color: var(--text-muted); font-size: 12px;">Advertisement Banner</span>
-    <!-- Paste your banner ad HTML/Script code here -->
   </div>
 
   <div id="searchHistoryContainer">
@@ -189,7 +197,7 @@
       <span class="close-btn" onclick="closePlayer()">&times;</span>
       
       <div class="modal-actions">
-        <!-- Download Button inside Player Modal -->
+        <!-- Media Download Button inside Player -->
         <button id="modalDownloadBtn" onclick="toggleAppDownload()" title="Download to App Storage">
           <i class="fa-solid fa-download"></i>
         </button>
@@ -208,4 +216,4 @@
 
   <script src="./app.js"></script>
 </body>
-                                            </html>
+</html>
