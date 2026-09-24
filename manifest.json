@@ -1,15 +1,19 @@
 {
   "name": "NOVEX Stream",
   "short_name": "NOVEX",
-  "start_url": "/index.html",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0b0e17",
-  "theme_color": "#0b0e17",
+  "orientation": "portrait-primary",
+  "background_color": "#e21616",
+  "theme_color": "#760b0b",
+  "description": "Novex Stream is a platform built to allow users to stream their favorite shows and movies at no cost.",
   "icons": [
     {
       "src": "https://via.placeholder.com/512x512/3b82f6/ffffff?text=N",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
