@@ -9,8 +9,10 @@
   <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- PLACE YOUR AD NETWORK SCRIPTS HERE -->
-  <!-- <script type="text/javascript" src="your-ad-script-url.js"></script> -->
+  <!-- INTEGRATED AD SCRIPTS -->
+  <script src="https://unfinishedspend.com/67/58/cf/6758cfa8f5ad5df99658b05920501b79.js"></script>
+  <script async="async" data-cfasync="false" src="https://unfinishedspend.com/b69460673e31162a246da7f34c528460/invoke.js"></script>
+  <script src="https://unfinishedspend.com/53/9c/55/539c556fd743dea59089c2354d827f1d.js"></script>
 
   <style>
     :root {
@@ -43,7 +45,7 @@
       background: var(--accent-red) !important;
       padding: 6px 12px;
       border-radius: 4px;
-      display: none; /* Shown dynamically when PWA prompt is ready */
+      display: none;
     }
 
     /* Search Bar */
@@ -59,8 +61,10 @@
       background: #1a1a1a;
       min-height: 60px;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
     }
 
     /* Hero Banner */
@@ -171,7 +175,17 @@
 
   <!-- Top Banner Ad Integration Slot -->
   <div class="ad-banner-container" id="top-ad-slot">
-    <span style="color: var(--text-muted); font-size: 12px;">Advertisement Banner</span>
+    <script>
+      atOptions = {
+        'key' : 'b3e796a60be2875cd378f3f25245d082',
+        'format' : 'iframe',
+        'height' : 60,
+        'width' : 468,
+        'params' : {}
+      };
+    </script>
+    <script src="https://unfinishedspend.com/b3e796a60be2875cd378f3f25245d082/invoke.js"></script>
+    <div id="container-b69460673e31162a246da7f34c528460"></div>
   </div>
 
   <div id="searchHistoryContainer">
@@ -216,4 +230,4 @@
 
   <script src="./app.js"></script>
 </body>
-</html>
+          </html>
