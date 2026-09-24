@@ -1,4 +1,4 @@
- const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
+const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
 
 const contentContainer = document.getElementById('content-container');
 const form = document.getElementById('form');
@@ -17,12 +17,10 @@ const heroTitle = document.getElementById('hero-title');
 const heroMeta = document.getElementById('hero-meta');
 const heroPlayBtn = document.getElementById('hero-play');
 const heroFavBtn = document.getElementById('hero-fav-btn');
-const installAppBtn = document.getElementById('installAppBtn');
 
 let currentLang = 'en-US';
-let currentMedia = { id: null, type: null, isDubbable: false, title: '', poster: '', seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: 'sub' };
+let currentMedia = { id: null, type: null, isDubbable: false, title: '', poster: '', seasonsData: [], currentSeason: 1, currentEpisode: 1 };
 let heroSet = false;
-let deferredPrompt = null;
 
 // IndexedDB Setup for In-App Secure Sandbox Downloads
 const DB_NAME = 'NovexDownloadsDB';
@@ -216,7 +214,14 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isDubbableSec
 async function openMedia(id, type, isDubbable, title, poster) {
   currentMedia = { id, type, isDubbable, title, poster, seasonsData: [], currentSeason: 1, currentEpisode: 1 };
 
-  updateModalActionButtons();
+  await updateModalActionButtons();
+
+  // Force landscape orientation for the video player view if supported by the device
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(err => {
+      console.log('Orientation lock to landscape requires fullscreen or mobile context:', err);
+    });
+  }
 
   if (type === 'tv' || isDubbable) {
     tvControls.style.display = 'flex';
@@ -242,6 +247,16 @@ async function openMedia(id, type, isDubbable, title, poster) {
     tvControls.style.display = 'none';
     iframe.src = `https://vidsrc.me/embed/movie?tmdb=${id}`;
     videoModal.style.display = 'flex';
+  }
+}
+
+function closePlayer() {
+  iframe.src = '';
+  videoModal.style.display = 'none';
+
+  // Unlock orientation back to default when closing the player
+  if (screen.orientation && screen.orientation.unlock) {
+    screen.orientation.unlock();
   }
 }
 
@@ -317,9 +332,9 @@ async function toggleAppDownload() {
       poster: currentMedia.poster,
       downloadedAt: new Date().toISOString()
     });
-    alert(`"${currentMedia.title}" successfully downloaded to app sandbox storage! Available in your Downloads tab.`);
+    alert(`"${currentMedia.title}" successfully downloaded to app sandbox storage!`);
   }
-  updateModalActionButtons();
+  await updateModalActionButtons();
 }
 
 async function updateModalActionButtons() {
@@ -327,7 +342,6 @@ async function updateModalActionButtons() {
   if (modalDownloadBtn) {
     const downloaded = await isDownloadedInApp(currentMedia.id);
     modalDownloadBtn.style.color = downloaded ? 'var(--accent-red)' : 'white';
-    modalDownloadBtn.title = downloaded ? 'Remove from App Downloads' : 'Download to App Storage';
   }
 }
 
