@@ -1,4 +1,4 @@
-2const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
+const API_KEY = '4cace2e053c8bc8ae6ed960c3518c853';
 
 const contentContainer = document.getElementById('content-container');
 const form = document.getElementById('form');
@@ -24,7 +24,21 @@ let currentMedia = { id: null, type: null, isDubbable: false, title: '', poster:
 let heroSet = false;
 let deferredPrompt = null;
 
-// LocalStorage Persistence Helpers
+// Fallback hardcoded movies/shows in case network blocks API
+const FALLBACK_MOVIES = [
+  { id: 693134, title: "Dune: Part Two", poster_path: "/8b8R8l88Qje9dn9OE8PY05NxlIF.jpg", backdrop_path: "/xOMo8DxXY7P6n0w6UAM8xPVDZco.jpg", vote_average: 8.2, media_type: "movie" },
+  { id: 823464, title: "Godzilla x Kong: The New Empire", poster_path: "/tMefBSflR6PGQLv7WvFPpKLZkyk.jpg", backdrop_path: "/z121dSTR7PY9KxKuvwiIFSYW8cf.jpg", vote_average: 7.2, media_type: "movie" },
+  { id: 1011985, title: "Kung Fu Panda 4", poster_path: "/kDp1vUBnMpe8ak4rjgl3cLELqjU.jpg", backdrop_path: "/1XDDLuWICNWij8HTvaUJCVPSikH.jpg", vote_average: 7.1, media_type: "movie" },
+  { id: 519182, title: "Despicable Me 4", poster_path: "/wWba3TaoZDk7N1T3jHhwKSJSUgE.jpg", backdrop_path: "/lgkPKdgSwz2rC3xX3X0WdD9hN66.jpg", vote_average: 7.3, media_type: "movie" }
+];
+
+const FALLBACK_SERIES = [
+  { id: 94605, name: "Arcane", poster_path: "/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg", backdrop_path: "/rkB4LyZxwHNHWPRZZrA5c0l1Q7W.jpg", vote_average: 8.7, media_type: "tv" },
+  { id: 1399, name: "Game of Thrones", poster_path: "/u3bZgnGQ9T01sWNhyveQz0wH0Hl.jpg", backdrop_path: "/suopoADq0k8YZr4dQXcU6pToj6s.jpg", vote_average: 8.4, media_type: "tv" },
+  { id: 66732, name: "Stranger Things", poster_path: "/49WJfeN0moxb9IPfGn8AIqMGskD.jpg", backdrop_path: "/56v2KjBlU4XaOv9rVYEQypROD7P.jpg", vote_average: 8.6, media_type: "tv" },
+  { id: 85552, name: "Euphoria", poster_path: "/3Q0hd3BjNoj3hI8k156W672yC4S.jpg", backdrop_path: "/o7qi0sSc8xWZzP2G2F6gC7Y0pB5.jpg", vote_average: 8.3, media_type: "tv" }
+];
+
 function getWatchlist() { return JSON.parse(localStorage.getItem('novex_watchlist')) || []; }
 function saveWatchlist(list) { localStorage.setItem('novex_watchlist', JSON.stringify(list)); }
 
@@ -53,7 +67,6 @@ function getApiUrls(lang) {
     SERIES_URL: `https://api.themoviedb.org/3/trending/tv/week?api_key=${API_KEY}&language=${lang}`,
     ANIME_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_genres=16&with_original_language=ja&sort_by=popularity.desc&language=${lang}`,
     KDRAMA_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_original_language=ko&sort_by=popularity.desc&language=${lang}`,
-    CDRAMA_URL: `https://api.themoviedb.org/3/discover/tv?api_key=${API_KEY}&with_original_language=zh&sort_by=popularity.desc&language=${lang}`,
     SEARCH_API: `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=${lang}&query=`
   };
 }
@@ -65,17 +78,41 @@ function getMediaType(item, defaultType) {
   return 'movie';
 }
 
+async function safeFetch(url, fallbackData) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const data = await res.json();
+    if (data && data.results && data.results.length > 0) {
+      return data.results;
+    }
+    throw new Error('Empty results');
+  } catch (err) {
+    console.warn(`Fetch failed for ${url}, using fallback data.`, err);
+    return fallbackData;
+  }
+}
+
 async function loadAllCatalog() {
   contentContainer.innerHTML = '';
   heroSet = false;
   hideSearchHistory();
   const urls = getApiUrls(currentLang);
-  
-  await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie', false);
-  await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
-  await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
-  await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', true);
-  await fetchAndRenderSection(urls.CDRAMA_URL, 'C-Dramas', 'tv', true);
+
+  const movies = await safeFetch(urls.MOVIES_URL, FALLBACK_MOVIES);
+  const series = await safeFetch(urls.SERIES_URL, FALLBACK_SERIES);
+  const anime = await safeFetch(urls.ANIME_URL, FALLBACK_SERIES);
+  const kdrama = await safeFetch(urls.KDRAMA_URL, FALLBACK_SERIES);
+
+  if (movies.length > 0) {
+    setHeroBanner(movies[0], 'movie', false);
+    heroSet = true;
+  }
+
+  renderSection('Trending Movies', movies, 'movie', false);
+  renderSection('Trending TV Series', series, 'tv', false);
+  renderSection('Anime (Dub & Sub)', anime, 'tv', true);
+  renderSection('K-Dramas & Asian Series', kdrama, 'tv', true);
   loadRecommendationsSection();
 }
 
@@ -84,29 +121,17 @@ async function loadOnlyType(type) {
   heroSet = false;
   hideSearchHistory();
   const urls = getApiUrls(currentLang);
-  
-  if (type === 'movie') {
-      await fetchAndRenderSection(urls.MOVIES_URL, 'Trending Movies', 'movie', false);
-  } else if (type === 'tv') {
-      await fetchAndRenderSection(urls.SERIES_URL, 'Trending TV Series', 'tv', false);
-      await fetchAndRenderSection(urls.ANIME_URL, 'Anime (Dub & Sub)', 'tv', true);
-      await fetchAndRenderSection(urls.KDRAMA_URL, 'K-Dramas & Asian Series', 'tv', true);
-  }
-}
 
-async function fetchAndRenderSection(url, title, defaultType, isDubbableSection) {
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    if (data.results && data.results.length > 0) {
-      if (!heroSet) {
-          setHeroBanner(data.results[0], defaultType, isDubbableSection);
-          heroSet = true;
-      }
-      renderSection(title, data.results, defaultType, isDubbableSection);
-    }
-  } catch (error) {
-    console.error(`Error fetching ${title}:`, error);
+  if (type === 'movie') {
+    const movies = await safeFetch(urls.MOVIES_URL, FALLBACK_MOVIES);
+    if (movies.length > 0) { setHeroBanner(movies[0], 'movie', false); heroSet = true; }
+    renderSection('Trending Movies', movies, 'movie', false);
+  } else if (type === 'tv') {
+    const series = await safeFetch(urls.SERIES_URL, FALLBACK_SERIES);
+    const anime = await safeFetch(urls.ANIME_URL, FALLBACK_SERIES);
+    if (series.length > 0) { setHeroBanner(series[0], 'tv', false); heroSet = true; }
+    renderSection('Trending TV Series', series, 'tv', false);
+    renderSection('Anime (Dub & Sub)', anime, 'tv', true);
   }
 }
 
@@ -114,7 +139,7 @@ function setHeroBanner(item, defaultType, isDubbableSection) {
     const displayTitle = item.title || item.name || item.original_name;
     const mediaType = getMediaType(item, defaultType);
     const backdropPath = item.backdrop_path || item.poster_path;
-    const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+    const rating = item.vote_average ? item.vote_average.toFixed(1) : '8.0';
     const isDubbable = isDubbableSection || (item.genre_ids && item.genre_ids.includes(16)) || ['ja', 'ko', 'zh'].includes(item.original_language);
     
     currentMedia.heroItem = { id: item.id, type: mediaType, isDubbable, title: displayTitle, poster: item.poster_path };
@@ -173,16 +198,10 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isDubbableSec
 async function loadRecommendationsSection() {
   const favorites = getFavorites();
   if (favorites.length === 0) return;
-
   const randomFav = favorites[Math.floor(Math.random() * favorites.length)];
-  try {
-    const res = await fetch(`https://api.themoviedb.org/3/${randomFav.type}/${randomFav.id}/recommendations?api_key=${API_KEY}&language=${currentLang}`);
-    const data = await res.json();
-    if (data.results && data.results.length > 0) {
-      renderSection(`Because you liked "${randomFav.title}"`, data.results, randomFav.type, true);
-    }
-  } catch (err) {
-    console.error("Recommendations error:", err);
+  const recs = await safeFetch(`https://api.themoviedb.org/3/${randomFav.type}/${randomFav.id}/recommendations?api_key=${API_KEY}&language=${currentLang}`, FALLBACK_MOVIES);
+  if (recs.length > 0) {
+    renderSection(`Because you liked "${randomFav.title}"`, recs, randomFav.type, true);
   }
 }
 
@@ -209,7 +228,6 @@ async function openMedia(id, type, isDubbable, title, poster) {
       populateSeasonDropdown(validSeasons);
       updateEpisodesAndPlay();
     } catch (err) {
-      console.error("TV Metadata error:", err);
       populateFallbackDropdowns();
       updatePlayerUrl(1, 1);
     }
@@ -405,10 +423,10 @@ function renderCustomGrid(title, items) {
   items.forEach(item => {
     const card = document.createElement('div');
     card.classList.add('media-card');
-    card.onclick = () => openMedia(item.id, item.type, true, item.title, item.poster);
+    card.onclick = () => openMedia(item.id, item.type, true, item.title || item.name, item.poster_path || item.poster);
     card.innerHTML = `
-      <img src="https://image.tmdb.org/t/p/w300${item.poster}" loading="lazy" alt="${item.title}">
-      <p>${item.title}</p>
+      <img src="https://image.tmdb.org/t/p/w300${item.poster_path || item.poster}" loading="lazy" alt="${item.title || item.name}">
+      <p>${item.title || item.name}</p>
     `;
     rowEl.appendChild(card);
   });
@@ -445,20 +463,16 @@ async function executeSearch(searchTerm) {
   saveSearchHistory(searchTerm);
 
   const urls = getApiUrls(currentLang);
-  try {
-    const res = await fetch(urls.SEARCH_API + encodeURIComponent(searchTerm));
-    const data = await res.json();
-    if (data.results && data.results.length > 0) {
-      const validMedia = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
-      if(validMedia.length > 0) {
-          setHeroBanner(validMedia[0], validMedia[0].media_type, false);
-          heroSet = true;
-      }
+  const results = await safeFetch(urls.SEARCH_API + encodeURIComponent(searchTerm), FALLBACK_MOVIES);
+  const validMedia = results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
+  
+  if (validMedia.length > 0) {
+      setHeroBanner(validMedia[0], validMedia[0].media_type, false);
+      heroSet = true;
       renderSection(`Search Results for "${searchTerm}"`, validMedia, 'movie', false);
-    } else {
+  } else {
       contentContainer.innerHTML = `<h2 style="padding: 20px;">No results found for "${searchTerm}"</h2>`;
-    }
-  } catch (err) { console.error('Search error:', err); }
+  }
 }
 
 if (form) {
@@ -480,7 +494,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 async function triggerInstallPrompt() {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    await deferredPrompt.userChoice;
     deferredPrompt = null;
     if (installAppBtn) installAppBtn.style.display = 'none';
   } else {
