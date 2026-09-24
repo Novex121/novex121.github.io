@@ -26,9 +26,8 @@
       <button class="tab active" onclick="loadAllCatalog()">Trending</button>
       <button class="tab" onclick="loadOnlyType('movie')">Movie</button>
       <button class="tab" onclick="loadOnlyType('tv')">TV Series</button>
-      <select id="languageSelect" onchange="onLanguageChange()" style="display:none;">
-        <option value="en-US">English</option>
-      </select>
+      <button class="tab" onclick="loadWatchlist()">Watchlist</button>
+      <button class="tab" onclick="loadFavorites()">Favorites</button>
     </nav>
   </header>
 
@@ -38,7 +37,10 @@
       <div class="hero-content">
         <h1 id="hero-title">Loading...</h1>
         <p id="hero-meta">⭐ -- | Loading...</p>
-        <button id="hero-play" class="hero-play-btn"><i class="fa-solid fa-play"></i> Watch Now</button>
+        <div class="hero-actions">
+          <button id="hero-play" class="hero-play-btn"><i class="fa-solid fa-play"></i> Watch Now</button>
+          <button id="hero-fav-btn" class="hero-action-sub-btn" onclick="toggleHeroFavorite()"><i class="fa-regular fa-heart"></i></button>
+        </div>
       </div>
     </section>
 
@@ -56,6 +58,12 @@
       <script src="https://unfinishedspend.com/91d9be88fca3c09ba1c461db245c5eb0/invoke.js"></script>
     </div>
 
+    <!-- Search History Dropdown / Panel -->
+    <div id="searchHistoryContainer" class="history-chip-container" style="display:none;">
+      <h4>Recent Searches</h4>
+      <div id="historyChips" class="chip-row"></div>
+    </div>
+
     <div id="content-container"></div>
   </main>
 
@@ -64,17 +72,32 @@
     <div class="modal-content">
       <span class="close-btn" onclick="closePlayer()">&times;</span>
       
-      <!-- TV / Anime Controls with Dub/Sub Switcher & Next Episode -->
+      <!-- TV / Anime Controls with Dub/Sub Switcher, Watchlist, Ratings & Next Episode -->
       <div id="tvControls" class="tv-controls" style="display:none;">
         <select id="seasonSelect" onchange="onSeasonChange()"></select>
         <select id="episodeSelect" onchange="onEpisodeChange()"></select>
         
         <select id="audioTrackSelect" onchange="onAudioTrackChange()">
           <option value="dub">English Dub</option>
-          <option value="sub" selected>Japanese/Original Audio (Sub)</option>
+          <option value="sub" selected>Original Audio (Sub)</option>
         </select>
 
         <button id="nextEpisodeBtn" class="next-ep-btn" onclick="playNextEpisode()">Next Ep <i class="fa-solid fa-forward"></i></button>
+      </div>
+
+      <!-- Action Toolbar inside Modal (Rating, Watchlist, Favorite, Offline Note) -->
+      <div class="modal-action-bar">
+        <button id="modalFavBtn" onclick="toggleCurrentFavorite()"><i class="fa-solid fa-heart"></i> Favorite</button>
+        <button id="modalWatchlistBtn" onclick="toggleCurrentWatchlist()"><i class="fa-solid fa-bookmark"></i> Watchlist</button>
+        <div class="rating-picker">
+          <span>Rate:</span>
+          <i class="fa-solid fa-star" onclick="rateCurrentMedia(1)"></i>
+          <i class="fa-solid fa-star" onclick="rateCurrentMedia(2)"></i>
+          <i class="fa-solid fa-star" onclick="rateCurrentMedia(3)"></i>
+          <i class="fa-solid fa-star" onclick="rateCurrentMedia(4)"></i>
+          <i class="fa-solid fa-star" onclick="rateCurrentMedia(5)"></i>
+          <span id="userRatingDisplay">(-/5)</span>
+        </div>
       </div>
 
       <div class="iframe-container">
@@ -89,18 +112,18 @@
       <i class="fa-solid fa-house"></i>
       <span>Home</span>
     </a>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" onclick="loadWatchlist()">
       <i class="fa-solid fa-compass"></i>
-      <span>Explore</span>
+      <span>Watchlist</span>
     </a>
-    <div class="nav-center-button">
+    <div class="nav-center-button" onclick="loadAllCatalog()">
       <div class="center-logo-circle">N</div>
     </div>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" onclick="loadFavorites()">
       <i class="fa-solid fa-bookmark"></i>
-      <span>Saved</span>
+      <span>Favorites</span>
     </a>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" onclick="loadUserProfile()">
       <i class="fa-solid fa-user"></i>
       <span>Me</span>
     </a>
