@@ -1,167 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="./manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novex Stream - Watch Free Movies, Series & Anime</title>
-  
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+  <title>NOVEX Stream</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#760b0b">
+  <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-color: #121212;
+      --accent-red: #e50914;
+      --text-main: #ffffff;
+      --text-muted: #b3b3b3;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
 
-  <!-- Ad Network Scripts -->
-  <script src="https://unfinishedspend.com/53/9c/55/539c556fd743dea59089c2354d827f1d.js"></script>
-  <script src="https://unfinishedspend.com/67/58/cf/6758cfa8f5ad5df99658b05920501b79.js"></script>
+    /* Header / Navbar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background: #000;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .logo { color: var(--accent-red); font-size: 24px; font-weight: bold; text-decoration: none; }
+    .nav-links { display: flex; gap: 15px; align-items: center; }
+    .nav-links button { background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 16px; }
+    .nav-links button:hover { color: var(--accent-red); }
+
+    /* Search Bar */
+    .search-form { display: flex; gap: 5px; }
+    .search-form input { padding: 8px 12px; border-radius: 4px; border: none; background: #222; color: white; }
+    .search-form button { padding: 8px 12px; background: var(--accent-red); color: white; border: none; border-radius: 4px; cursor: pointer; }
+
+    /* Hero Banner */
+    #hero-banner {
+      width: 100%;
+      height: 400px;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 30px;
+      background-image: linear-gradient(to top, #121212, transparent);
+    }
+    #hero-title { font-size: 36px; margin-bottom: 10px; }
+    #hero-meta { color: var(--text-muted); margin-bottom: 15px; }
+    .hero-buttons button { padding: 10px 20px; background: var(--accent-red); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+    /* Sections & Media Rows */
+    .media-row-section { padding: 20px; }
+    .section-header h2 { font-size: 20px; margin-bottom: 10px; border-left: 4px solid var(--accent-red); padding-left: 10px; }
+    .horizontal-scroll-row {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      scrollbar-width: thin;
+    }
+    .horizontal-scroll-row::-webkit-scrollbar { height: 6px; }
+    .horizontal-scroll-row::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    
+    .media-card {
+      min-width: 140px;
+      width: 140px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .media-card:hover { transform: scale(1.05); }
+    .media-card img { width: 100%; height: 210px; object-fit: cover; border-radius: 6px; }
+    .media-card p { font-size: 14px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; }
+
+    /* Search History Chips */
+    #searchHistoryContainer { padding: 10px 20px; display: none; }
+    .search-chip { display: inline-block; background: #222; padding: 5px 10px; border-radius: 15px; margin-right: 5px; cursor: pointer; font-size: 13px; }
+
+    /* Fullscreen Landscape Video Player Modal */
+    #videoModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #000;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #videoModal .modal-content {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      position: relative;
+    }
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 30px;
+      color: white;
+      cursor: pointer;
+      z-index: 10001;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      padding: 10px 20px;
+      z-index: 10000;
+    }
+    .modal-actions button { background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
+    #tvControls { display: flex; gap: 10px; padding: 0 20px 10px 20px; }
+    #tvControls select { padding: 5px 10px; background: #222; color: white; border: none; border-radius: 4px; }
+    .video-container { flex-grow: 1; width: 100%; height: 100%; }
+    .video-container iframe { width: 100%; height: 100%; border: none; }
+  </style>
 </head>
 <body>
 
-  <!-- Top Navigation & Search -->
-  <header class="app-header">
-    <div class="header-top-row">
-      <form id="form" class="search-bar-container">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" id="search" placeholder="Search movies, series, anime, k-drama...">
-      </form>
-      <button id="installAppBtn" class="install-btn" style="display:none;" onclick="triggerInstallPrompt()">
-        <i class="fa-solid fa-download"></i> Install
-      </button>
+  <header>
+    <a href="./index.html" class="logo">NOVEX</a>
+    <div class="nav-links">
+      <button onclick="loadAllCatalog()">Home</button>
+      <button onclick="loadDownloads()">📥 Downloads</button>
     </div>
-    
-    <nav class="category-tabs">
-      <button class="tab active" onclick="loadAllCatalog()">Trending</button>
-      <button class="tab" onclick="loadOnlyType('movie')">Movie</button>
-      <button class="tab" onclick="loadOnlyType('tv')">TV Series</button>
-      <button class="tab" onclick="loadWatchlist()">Watchlist</button>
-      <button class="tab" onclick="loadFavorites()">Favorites</button>
-    </nav>
+    <form class="search-form" id="form">
+      <input type="text" id="search" placeholder="Search movies, series...">
+      <button type="submit"><i class="fa-solid fa-search"></i></button>
+    </form>
   </header>
 
-  <!-- Main Content Feed -->
-  <main class="content-feed">
-    <section class="hero-banner" id="hero-banner">
-      <div class="hero-content">
-        <h1 id="hero-title">Loading...</h1>
-        <p id="hero-meta">⭐ -- | Loading...</p>
-        <div class="hero-actions">
-          <button id="hero-play" class="hero-play-btn"><i class="fa-solid fa-play"></i> Watch Now</button>
-          <button id="hero-fav-btn" class="hero-action-sub-btn" onclick="toggleHeroFavorite()"><i class="fa-regular fa-heart"></i></button>
-        </div>
+  <div id="searchHistoryContainer">
+    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px;">Recent Searches:</div>
+    <div id="historyChips"></div>
+  </div>
+
+  <div id="hero-banner">
+    <div style="max-width: 600px;">
+      <h1 id="hero-title">Loading...</h1>
+      <p id="hero-meta">⭐ -- | Loading...</p>
+      <div class="hero-buttons">
+        <button id="hero-play"><i class="fa-solid fa-play"></i> Watch Now</button>
       </div>
-    </section>
-
-    <!-- Ad Banner Slot (160x300) -->
-    <div class="ad-banner-wrapper" style="text-align: center; margin: 20px 0;">
-      <script>
-        atOptions = {
-          'key' : '91d9be88fca3c09ba1c461db245c5eb0',
-          'format' : 'iframe',
-          'height' : 300,
-          'width' : 160,
-          'params' : {}
-        };
-      </script>
-      <script src="https://unfinishedspend.com/91d9be88fca3c09ba1c461db245c5eb0/invoke.js"></script>
-    </div>
-
-    <!-- Search History Dropdown / Panel -->
-    <div id="searchHistoryContainer" class="history-chip-container" style="display:none;">
-      <h4>Recent Searches</h4>
-      <div id="historyChips" class="chip-row"></div>
-    </div>
-
-    <div id="content-container"></div>
-  </main>
-
-  <!-- Expanded Full Screen Video Player Modal -->
-  <!-- Video Player Modal Template snippet -->
-<div id="videoModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <span class="close-btn" onclick="closePlayer()">&times;</span>
-    
-    <!-- Action buttons row under title/player -->
-    <div class="modal-actions" style="margin-bottom: 10px; display: flex; gap: 15px; align-items: center;">
-      <button id="modalFavBtn" onclick="toggleCurrentFavorite()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" title="Favorite">
-        <i class="fa-solid fa-heart"></i>
-      </button>
-      <button id="modalWatchlistBtn" onclick="toggleCurrentWatchlist()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" title="Watchlist">
-        <i class="fa-solid fa-bookmark"></i>
-      </button>
-      <!-- In-App Download Button Added Here -->
-      <button id="modalDownloadBtn" onclick="toggleAppDownload()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;" title="Download to App Storage">
-        <i class="fa-solid fa-download"></i>
-      </button>
-    </div>
-
-    <!-- TV Controls (Seasons / Episodes) -->
-    <div id="tvControls" style="display:none; gap:10px; margin-bottom:10px;">
-      <select id="seasonSelect" onchange="onSeasonChange()"></select>
-      <select id="episodeSelect" onchange="onEpisodeChange()"></select>
-    </div>
-
-    <div class="video-container">
-      <iframe id="player" src="" frameborder="0" allowfullscreen></iframe>
     </div>
   </div>
-</div>
+
+  <main id="content-container"></main>
+
+  <!-- Fullscreen Landscape Video Player Modal -->
+  <div id="videoModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closePlayer()">&times;</span>
       
-      <!-- TV / Anime Controls with Dub/Sub Switcher, Watchlist, Ratings & Next Episode -->
-      <div id="tvControls" class="tv-controls" style="display:none;">
+      <div class="modal-actions">
+        <button id="modalDownloadBtn" onclick="toggleAppDownload()" title="Download to App Storage">
+          <i class="fa-solid fa-download"></i>
+        </button>
+      </div>
+
+      <div id="tvControls" style="display:none;">
         <select id="seasonSelect" onchange="onSeasonChange()"></select>
         <select id="episodeSelect" onchange="onEpisodeChange()"></select>
-        
-        <select id="audioTrackSelect" onchange="onAudioTrackChange()">
-          <option value="dub">English Dub</option>
-          <option value="sub" selected>Original Audio (Sub)</option>
-        </select>
-
-        <button id="nextEpisodeBtn" class="next-ep-btn" onclick="playNextEpisode()">Next Ep <i class="fa-solid fa-forward"></i></button>
       </div>
 
-      <!-- Action Toolbar inside Modal -->
-      <div class="modal-action-bar">
-        <button id="modalFavBtn" onclick="toggleCurrentFavorite()"><i class="fa-solid fa-heart"></i> Favorite</button>
-        <button id="modalWatchlistBtn" onclick="toggleCurrentWatchlist()"><i class="fa-solid fa-bookmark"></i> Watchlist</button>
-        <div class="rating-picker">
-          <span>Rate:</span>
-          <i class="fa-solid fa-star" onclick="rateCurrentMedia(1)"></i>
-          <i class="fa-solid fa-star" onclick="rateCurrentMedia(2)"></i>
-          <i class="fa-solid fa-star" onclick="rateCurrentMedia(3)"></i>
-          <i class="fa-solid fa-star" onclick="rateCurrentMedia(4)"></i>
-          <i class="fa-solid fa-star" onclick="rateCurrentMedia(5)"></i>
-          <span id="userRatingDisplay">(-/5)</span>
-        </div>
-      </div>
-
-      <div class="iframe-container">
-        <iframe id="player" src="" frameborder="0" allowfullscreen></iframe>
+      <div class="video-container">
+        <iframe id="player" src="" allowfullscreen></iframe>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Navigation Bar -->
-  <nav class="bottom-nav">
-    <a href="#" class="nav-item active" onclick="loadAllCatalog()">
-      <i class="fa-solid fa-house"></i>
-      <span>Home</span>
-    </a>
-    <a href="#" class="nav-item" onclick="loadWatchlist()">
-      <i class="fa-solid fa-compass"></i>
-      <span>Watchlist</span>
-    </a>
-    <div class="nav-center-button" onclick="loadAllCatalog()">
-      <div class="center-logo-circle">N</div>
-    </div>
-    <a href="#" class="nav-item" onclick="loadFavorites()">
-      <i class="fa-solid fa-bookmark"></i>
-      <span>Favorites</span>
-    </a>
-    <a href="#" class="nav-item" onclick="loadUserProfile()">
-      <i class="fa-solid fa-user"></i>
-      <span>Me</span>
-    </a>
-  </nav>
-
-  <script src="app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
