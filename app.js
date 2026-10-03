@@ -26,7 +26,13 @@ let heroItemsList = [];
 let heroSlideIndex = 0;
 let heroInterval = null;
 
-// PWA Install Prompt Handler
+// Reliable Fallback Media List (Resident Evil featured prominently)
+const FALLBACK_MEDIA = [
+  { id: 109617, name: "Resident Evil: Infinite Darkness", poster_path: "/g8aKx987l2bK0sI4k64xL59g5b.jpg", backdrop_path: "/u9YEh2xVAPrtKoaMNllkPrtCs6s.jpg", vote_average: 7.3, media_type: "tv", original_language: "ja" },
+  { id: 693134, title: "Dune: Part Two", poster_path: "/8b8R8l88Qje9dn9OE8PY05NxlIF.jpg", backdrop_path: "/xOMo8DxXY7P6n0w6UAM8xPVDZco.jpg", vote_average: 8.2, media_type: "movie" },
+  { id: 94605, name: "Arcane", poster_path: "/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg", backdrop_path: "/rkB4LyZxwHNHWPRZZrA5c0l1Q7W.jpg", vote_average: 8.7, media_type: "tv", original_language: "en" }
+];
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -44,7 +50,6 @@ async function installPWA() {
   }
 }
 
-// IndexedDB Setup for Offline Downloads, Watchlist, & Favorites
 const DB_NAME = 'NovexAppDB';
 const STORE_DOWNLOADS = 'downloads';
 const STORE_WATCHLIST = 'watchlist';
@@ -91,13 +96,6 @@ async function dbExists(storeName, id) {
   return all.some(item => item.id === id);
 }
 
-// Fallback data (including Resident Evil themed or similar popular series/movies/anime)
-const FALLBACK_MEDIA = [
-  { id: 109617, name: "Resident Evil: Infinite Darkness", poster_path: "/g8aKx987l2bK0sI4k64xL59g5b.jpg", backdrop_path: "/u9YEh2xVAPrtKoaMNllkPrtCs6s.jpg", vote_average: 7.3, media_type: "tv", original_language: "ja" },
-  { id: 693134, title: "Dune: Part Two", poster_path: "/8b8R8l88Qje9dn9OE8PY05NxlIF.jpg", backdrop_path: "/xOMo8DxXY7P6n0w6UAM8xPVDZco.jpg", vote_average: 8.2, media_type: "movie" },
-  { id: 94605, name: "Arcane", poster_path: "/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg", backdrop_path: "/rkB4LyZxwHNHWPRZZrA5c0l1Q7W.jpg", vote_average: 8.7, media_type: "tv", original_language: "en" }
-];
-
 function getSearchHistory() { return JSON.parse(localStorage.getItem('novex_search_history')) || []; }
 function saveSearchHistory(term) {
   let history = getSearchHistory();
@@ -132,7 +130,7 @@ async function safeFetch(url, fallbackData) {
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
     if (data && data.results && data.results.length > 0) return data.results;
-    throw new Error('Empty results');
+    return fallbackData;
   } catch (err) {
     return fallbackData;
   }
@@ -150,11 +148,8 @@ async function loadAllCatalog() {
   const kdrama = await safeFetch(urls.KDRAMA_URL, FALLBACK_MEDIA);
   const cdrama = await safeFetch(urls.CDRAMA_URL, FALLBACK_MEDIA);
 
-  // Setup Auto-sliding Hero (includes Resident Evil / TV / Anime / Movies)
-  heroItemsList = trendingAll.slice(0, 6);
-  if (heroItemsList.length > 0) {
-    startHeroSlider();
-  }
+  heroItemsList = trendingAll.length > 0 ? trendingAll.slice(0, 6) : FALLBACK_MEDIA;
+  startHeroSlider();
 
   renderSection('Trending All (Series, Movies & Anime)', trendingAll, 'tv', true);
   renderSection('Trending Movies', movies, 'movie', false);
@@ -163,7 +158,6 @@ async function loadAllCatalog() {
   renderSection('K-Dramas (Dub & Sub Selector)', kdrama, 'tv', true);
   renderSection('C-Dramas (Dub & Sub Selector)', cdrama, 'tv', true);
   
-  // Smart Recommendations Section based on interaction
   renderSmartRecommendations();
 }
 
@@ -175,14 +169,14 @@ function startHeroSlider() {
   heroInterval = setInterval(() => {
     heroSlideIndex = (heroSlideIndex + 1) % heroItemsList.length;
     updateHeroBanner(heroItemsList[heroSlideIndex]);
-  }, 10000); // changes every 10 seconds
+  }, 10000);
 }
 
 function updateHeroBanner(item) {
   const displayTitle = item.title || item.name || item.original_name;
   const mediaType = getMediaType(item, 'tv');
   const backdropPath = item.backdrop_path || item.poster_path;
-  const rating = item.vote_average ? item.vote_average.toFixed(1) : '8.0';
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : '7.3';
   const isDubbable = mediaType === 'tv' || ['ja', 'ko', 'zh'].includes(item.original_language);
   
   currentMedia.heroItem = { id: item.id, type: mediaType, isDubbable, title: displayTitle, poster: item.poster_path };
@@ -216,10 +210,7 @@ function renderSection(sectionTitle, items, defaultType = 'movie', isDubbableSec
 
   const headerDiv = document.createElement('div');
   headerDiv.classList.add('section-header');
-
-  const titleEl = document.createElement('h2');
-  titleEl.textContent = sectionTitle;
-  headerDiv.appendChild(titleEl);
+  headerDiv.innerHTML = `<h2>${sectionTitle}</h2>`;
   sectionEl.appendChild(headerDiv);
 
   const rowEl = document.createElement('div');
@@ -255,7 +246,6 @@ async function renderSmartRecommendations() {
   if (watchlist.length === 0 && favorites.length === 0) return;
 
   const sampleItem = watchlist[0] || favorites[0];
-  const urls = getApiUrls(currentLang);
   const similar = await safeFetch(`https://api.themoviedb.org/3/${sampleItem.type}/${sampleItem.id}/similar?api_key=${API_KEY}&language=${currentLang}`, FALLBACK_MEDIA);
 
   if (similar.length > 0) {
@@ -264,7 +254,7 @@ async function renderSmartRecommendations() {
 }
 
 async function openMedia(id, type, isDubbable, title, poster) {
-  if (heroInterval) clearInterval(heroInterval); // pause banner slider while watching
+  if (heroInterval) clearInterval(heroInterval);
   currentMedia = { id, type, isDubbable, title, poster, seasonsData: [], currentSeason: 1, currentEpisode: 1, audioType: 'sub' };
 
   await updateModalActionButtons();
@@ -307,7 +297,7 @@ async function openMedia(id, type, isDubbable, title, poster) {
 function closePlayer() {
   iframe.src = '';
   videoModal.style.display = 'none';
-  startHeroSlider(); // resume hero banner
+  startHeroSlider();
 
   if (document.fullscreenElement && document.exitFullscreen) {
     document.exitFullscreen().catch(err => console.log(err));
@@ -373,7 +363,6 @@ function updatePlayerUrl(season, episode) {
   currentMedia.currentSeason = season;
   currentMedia.currentEpisode = episode;
   if (currentMedia.type === 'tv' || currentMedia.isDubbable) {
-    // Supports sub/dub routing embed configuration
     const dubParam = currentMedia.audioType === 'dub' ? '&ds=dub' : '';
     iframe.src = `https://vidsrc.me/embed/tv?tmdb=${currentMedia.id}&season=${season}&episode=${episode}${dubParam}`;
   } else {
@@ -381,15 +370,14 @@ function updatePlayerUrl(season, episode) {
   }
 }
 
-// Modal Action Handlers (Downloads, Favorites, Watchlist)
 async function toggleAppDownload() {
   const isDownloaded = await dbExists(STORE_DOWNLOADS, currentMedia.id);
   if (isDownloaded) {
     await dbItemAction(STORE_DOWNLOADS, currentMedia.id, 'delete');
-    alert(`"${currentMedia.title}" removed from offline downloads.`);
+    alert(`Removed from offline downloads.`);
   } else {
     await dbItemAction(STORE_DOWNLOADS, { id: currentMedia.id, type: currentMedia.type, title: currentMedia.title, poster: currentMedia.poster }, 'put');
-    alert(`"${currentMedia.title}" successfully downloaded for offline viewing!`);
+    alert(`Successfully downloaded for offline viewing!`);
   }
   await updateModalActionButtons();
 }
@@ -428,7 +416,6 @@ async function updateModalActionButtons() {
   if (modalWatchlistBtn) modalWatchlistBtn.style.color = (await dbExists(STORE_WATCHLIST, currentMedia.id)) ? 'var(--accent-red)' : 'white';
 }
 
-// Library View Renderers
 async function loadDownloads() {
   if (heroInterval) clearInterval(heroInterval);
   contentContainer.innerHTML = '';
@@ -529,9 +516,4 @@ if (form) {
     else loadAllCatalog();
   });
 }
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
-  });
-}
+document.addEventListener('DOMContentLoaded', loadAllCatalog);
