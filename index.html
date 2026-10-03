@@ -11,8 +11,10 @@
   
   <!-- INTEGRATED AD SCRIPTS -->
   <script src="https://unfinishedspend.com/67/58/cf/6758cfa8f5ad5df99658b05920501b79.js"></script>
-  <script async="async" data-cfasync="false" src="https://unfinishedspend.com/b69460673e31162a246da7f34c528460/invoke.js"></script>
   <script src="https://unfinishedspend.com/53/9c/55/539c556fd743dea59089c2354d827f1d.js"></script>
+  <script src="https://unfinishedspend.com/abe9t06w?key=25901aa02f16531fa3372caee1c9847d" async></script>
+  <script src="https://unfinishedspend.com/zwhg2zzr?key=5472e3ede77d1879990c84ffef135e3f" async></script>
+  <script async="async" data-cfasync="false" src="https://unfinishedspend.com/b69460673e31162a246da7f34c528460/invoke.js"></script>
 
   <style>
     :root {
@@ -35,22 +37,34 @@
       top: 0;
       z-index: 1000;
     }
-    .logo { color: var(--accent-red); font-size: 24px; font-weight: bold; text-decoration: none; }
-    .nav-links { display: flex; gap: 12px; align-items: center; }
-    .nav-links button { background: none; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 15px; }
-    .nav-links button:hover { color: var(--accent-red); }
+    .logo { color: var(--accent-red); font-size: 24px; font-weight: bold; text-decoration: none; cursor: pointer; }
+    .nav-actions { display: flex; gap: 15px; align-items: center; }
     
-    /* App Install Button Styling */
-    #installAppBtn {
-      background: var(--accent-red) !important;
+    .app-install-btn {
+      background: var(--accent-red);
+      color: white;
+      border: none;
       padding: 6px 12px;
       border-radius: 4px;
-      display: none;
+      font-weight: bold;
+      cursor: pointer;
+      display: none; /* Appears when install prompt is ready */
     }
+
+    .icon-nav-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      position: relative;
+    }
+    .icon-nav-btn:hover { color: var(--accent-red); }
 
     /* Search Bar */
     .search-form { display: flex; gap: 5px; }
-    .search-form input { padding: 8px 12px; border-radius: 4px; border: none; background: #222; color: white; }
+    .search-form input { padding: 8px 12px; border-radius: 4px; border: none; background: #222; color: white; width: 160px; transition: width 0.3s; }
+    .search-form input:focus { width: 220px; outline: none; }
     .search-form button { padding: 8px 12px; background: var(--accent-red); color: white; border: none; border-radius: 4px; cursor: pointer; }
 
     /* Ad Banner Container */
@@ -67,25 +81,30 @@
       overflow: hidden;
     }
 
-    /* Hero Banner */
+    /* Hero Banner (Auto Sliding every 10s) */
     #hero-banner {
       width: 100%;
-      height: 400px;
+      height: 450px;
       background-size: cover;
       background-position: center;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       padding: 30px;
-      background-image: linear-gradient(to top, #121212, transparent);
+      background-image: linear-gradient(to top, #121212, rgba(18,18,18,0.4), transparent);
+      transition: background-image 0.8s ease-in-out;
     }
-    #hero-title { font-size: 36px; margin-bottom: 10px; }
-    #hero-meta { color: var(--text-muted); margin-bottom: 15px; }
+    #hero-title { font-size: 38px; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+    #hero-meta { color: var(--text-muted); margin-bottom: 15px; font-weight: 500; }
+    .hero-buttons { display: flex; gap: 10px; }
     .hero-buttons button { padding: 10px 20px; background: var(--accent-red); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .hero-buttons button.secondary { background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); }
 
     /* Sections & Media Rows */
     .media-row-section { padding: 20px; }
-    .section-header h2 { font-size: 20px; margin-bottom: 10px; border-left: 4px solid var(--accent-red); padding-left: 10px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .section-header h2 { font-size: 20px; border-left: 4px solid var(--accent-red); padding-left: 10px; }
+    
     .horizontal-scroll-row {
       display: flex;
       gap: 15px;
@@ -106,11 +125,11 @@
     .media-card:hover { transform: scale(1.05); }
     .media-card img { width: 100%; height: 210px; object-fit: cover; border-radius: 6px; }
     .media-card p { font-size: 14px; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .badge { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; }
+    .badge { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.8); color: white; font-size: 10px; padding: 2px 6px; border-radius: 3px; }
 
     /* Search History Chips */
     #searchHistoryContainer { padding: 10px 20px; display: none; }
-    .search-chip { display: inline-block; background: #222; padding: 5px 10px; border-radius: 15px; margin-right: 5px; cursor: pointer; font-size: 13px; }
+    .search-chip { display: inline-block; background: #222; padding: 5px 10px; border-radius: 15px; margin-right: 5px; cursor: pointer; font-size: 13px; border: 1px solid #333; }
 
     /* Fullscreen Landscape Video Player Modal */
     #videoModal {
@@ -152,8 +171,10 @@
       z-index: 10000;
     }
     .modal-actions button { background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
-    #tvControls { display: flex; gap: 10px; padding: 0 20px 10px 20px; z-index: 10000; }
-    #tvControls select { padding: 5px 10px; background: #222; color: white; border: none; border-radius: 4px; }
+    
+    #tvControls { display: flex; gap: 10px; padding: 0 20px 10px 20px; z-index: 10000; flex-wrap: wrap; align-items: center; }
+    #tvControls select { padding: 6px 12px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; font-size: 14px; }
+    
     .video-container { flex-grow: 1; width: 100%; height: 100%; }
     .video-container iframe { width: 100%; height: 100%; border: none; }
   </style>
@@ -161,14 +182,15 @@
 <body>
 
   <header>
-    <a href="./index.html" class="logo">NOVEX</a>
-    <div class="nav-links">
-      <button onclick="loadAllCatalog()">Home</button>
-      <button onclick="loadDownloads()">📥 Downloads</button>
-      <button id="installAppBtn" onclick="installPWA()">📲 Install App</button>
+    <a onclick="loadAllCatalog()" class="logo">NOVEX</a>
+    <div class="nav-actions">
+      <button id="installAppBtn" class="app-install-btn" onclick="installPWA()"><i class="fa-solid fa-download"></i> Install App</button>
+      <button class="icon-nav-btn" onclick="loadWatchlist()" title="Watchlist"><i class="fa-solid fa-bookmark"></i></button>
+      <button class="icon-nav-btn" onclick="loadFavorites()" title="Favorites"><i class="fa-solid fa-heart"></i></button>
+      <button class="icon-nav-btn" onclick="loadDownloads()" title="Offline Downloads"><i class="fa-solid fa-cloud-arrow-down"></i></button>
     </div>
     <form class="search-form" id="form">
-      <input type="text" id="search" placeholder="Search movies, series...">
+      <input type="text" id="search" placeholder="Search movies, anime...">
       <button type="submit"><i class="fa-solid fa-search"></i></button>
     </form>
   </header>
@@ -193,31 +215,36 @@
     <div id="historyChips"></div>
   </div>
 
+  <!-- Auto Sliding Hero Banner -->
   <div id="hero-banner">
-    <div style="max-width: 600px;">
+    <div style="max-width: 650px;">
       <h1 id="hero-title">Loading...</h1>
       <p id="hero-meta">⭐ -- | Loading...</p>
       <div class="hero-buttons">
         <button id="hero-play"><i class="fa-solid fa-play"></i> Watch Now</button>
+        <button class="secondary" id="hero-watchlist"><i class="fa-solid fa-plus"></i> Watchlist</button>
       </div>
     </div>
   </div>
 
   <main id="content-container"></main>
 
-  <!-- Fullscreen Landscape Video Player Modal with Download Button -->
+  <!-- Fullscreen Landscape Video Player Modal -->
   <div id="videoModal">
     <div class="modal-content">
       <span class="close-btn" onclick="closePlayer()">&times;</span>
       
       <div class="modal-actions">
-        <!-- Media Download Button inside Player -->
-        <button id="modalDownloadBtn" onclick="toggleAppDownload()" title="Download to App Storage">
-          <i class="fa-solid fa-download"></i>
-        </button>
+        <button id="modalDownloadBtn" onclick="toggleAppDownload()" title="Download to Offline App Storage"><i class="fa-solid fa-download"></i></button>
+        <button id="modalFavoriteBtn" onclick="toggleFavorite()" title="Add to Favorites"><i class="fa-solid fa-heart"></i></button>
+        <button id="modalWatchlistBtn" onclick="toggleWatchlist()" title="Add to Watchlist"><i class="fa-solid fa-bookmark"></i></button>
       </div>
 
       <div id="tvControls" style="display:none;">
+        <select id="audioLangSelect" onchange="onAudioLangChange()">
+          <option value="sub">Subbed (Original)</option>
+          <option value="dub">Dubbed (English)</option>
+        </select>
         <select id="seasonSelect" onchange="onSeasonChange()"></select>
         <select id="episodeSelect" onchange="onEpisodeChange()"></select>
       </div>
@@ -230,4 +257,4 @@
 
   <script src="./app.js"></script>
 </body>
-          </html>
+</html>
