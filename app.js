@@ -67,6 +67,47 @@
     const historyChips = $("historyChips");
 
     const installAppBtn = $("installAppBtn");
+    const novexSplash = $("novexSplash");
+
+    /* =========================================================
+       APP LAUNCH EXPERIENCE
+       ========================================================= */
+
+    function showNovexSplash() {
+        if (!novexSplash) return;
+
+        const standalone =
+            window.matchMedia("(display-mode: standalone)").matches ||
+            window.navigator.standalone === true;
+
+        // The premium launch animation is intended for the installed app.
+        // Browser visits stay fast and go directly to the catalog.
+        if (!standalone) {
+            novexSplash.classList.add("is-hidden");
+            return;
+        }
+
+        const minimumTime = 1150;
+        const startedAt = performance.now();
+
+        const finish = () => {
+            const elapsed = performance.now() - startedAt;
+            const remaining = Math.max(0, minimumTime - elapsed);
+
+            window.setTimeout(() => {
+                novexSplash.classList.add("is-hidden");
+                window.setTimeout(() => novexSplash.remove(), 650);
+            }, remaining);
+        };
+
+        if (document.readyState === "complete") {
+            finish();
+        } else {
+            window.addEventListener("load", finish, { once: true });
+        }
+    }
+
+    showNovexSplash();
 
     const heroBanner = $("hero-banner");
     const heroTitle = $("hero-title");
