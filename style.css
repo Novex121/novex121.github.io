@@ -439,3 +439,38 @@ body {
     margin: 0 auto;
   }
 }
+
+/* =====================================================
+   NOVEX WHATSAPP WELCOME
+   ===================================================== */
+.whatsapp-welcome {
+  margin: 18px 20px 4px;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #171717, #101010);
+  border: 1px solid #2f2f2f;
+  border-left: 4px solid #25d366;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+.whatsapp-welcome[hidden] { display: none; }
+.whatsapp-welcome-icon {
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(37,211,102,.13); color: #25d366; font-size: 24px;
+}
+.whatsapp-kicker { color:#25d366; font-size:11px; font-weight:800; letter-spacing:1.2px; }
+.whatsapp-welcome-copy h2 { margin:3px 0 5px; font-size:20px; }
+.whatsapp-welcome-copy p { color:var(--text-muted); font-size:13px; line-height:1.5; max-width:720px; }
+.whatsapp-welcome-actions { display:flex; flex-direction:column; gap:7px; align-items:stretch; min-width:145px; }
+.whatsapp-join-btn { display:flex; align-items:center; justify-content:center; gap:7px; padding:10px 15px; border-radius:7px; background:#25d366; color:#061b0d; font-weight:800; text-decoration:none; }
+.whatsapp-join-btn:hover { filter:brightness(1.08); transform:translateY(-1px); }
+.whatsapp-dismiss-btn { background:transparent; border:0; color:#888; font-size:12px; padding:4px; }
+.whatsapp-dismiss-btn:hover { color:#fff; }
+@media (max-width:800px) {
+  .whatsapp-welcome { margin:14px 12px 2px; grid-template-columns:auto 1fr; padding:15px; }
+  .whatsapp-welcome-actions { grid-column:1 / -1; min-width:0; }
+  .whatsapp-join-btn { width:100%; }
+}
