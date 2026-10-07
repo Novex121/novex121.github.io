@@ -1,0 +1,19 @@
+{
+  "name": "Novex Stream",
+  "short_name": "Novex",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0b0f",
+  "theme_color": "#e50914",
+  "description": "Novex Stream — movies, series and anime.",
+  "icons": [
+    {
+      "src": "./IMG-20260924-WA0000.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
