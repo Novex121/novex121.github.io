@@ -2,7 +2,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>NOVEX Stream</title>  <meta name="theme-color" content="#760b0b">
-  <meta name="description" content="NOVEX Stream — Discover movies, TV series, anime and more.">  <link rel="manifest" href="./manifest.json">  <!-- Font Awesome -->  <link
+  <meta name="description" content="NOVEX Stream — Discover movies, TV series, anime and more.">  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">  <!-- Font Awesome -->  <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
   >  <!-- =====================================================
@@ -668,7 +671,348 @@
 
     }
 
-  </style></head><body>  <!-- =====================================================
+  
+    /* =====================================================
+       NOVEX 2.0 NAVIGATION UPGRADE
+       ===================================================== */
+    header {
+      height: 70px;
+      padding: 0 28px;
+      gap: 26px;
+      background: rgba(5,5,7,.94);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .logo {
+      font-size: 28px;
+      letter-spacing: 1.5px;
+    }
+    .desktop-nav {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+    .desktop-nav a {
+      color: #b8b8bd;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 650;
+      transition: color .2s ease;
+      white-space: nowrap;
+    }
+    .desktop-nav a:hover,
+    .desktop-nav a.active {
+      color: #fff;
+    }
+    .desktop-nav a.active::after {
+      content: "";
+      display: block;
+      height: 2px;
+      width: 18px;
+      margin: 5px auto 0;
+      border-radius: 4px;
+      background: var(--accent-red);
+    }
+    .nav-actions {
+      gap: 8px;
+    }
+    .icon-nav-btn {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+    }
+    .icon-nav-btn:hover {
+      background: #1d1d21;
+      transform: none;
+    }
+    .search-form {
+      margin-left: auto;
+    }
+    .search-form input {
+      border-radius: 20px;
+      background: #1a1a1e;
+      border-color: rgba(255,255,255,.06);
+      padding-left: 15px;
+    }
+    .search-form button {
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+    }
+
+    .hero-content-shell {
+      max-width: 700px;
+      padding-bottom: 5px;
+    }
+    #hero-banner {
+      min-height: 540px;
+      background-position: center 25%;
+    }
+    #hero-title {
+      max-width: 680px;
+      font-size: clamp(34px, 5vw, 58px);
+      font-weight: 800;
+      letter-spacing: -.8px;
+    }
+    #hero-meta {
+      font-size: 15px;
+    }
+    .hero-buttons button {
+      border-radius: 6px;
+      padding: 12px 22px;
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .media-row-section {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 26px 28px 8px;
+    }
+    .section-header {
+      margin-bottom: 14px;
+    }
+    .section-header h2 {
+      font-size: 21px;
+      border-left: 0;
+      padding-left: 0;
+      letter-spacing: -.2px;
+    }
+    .section-header h2::before {
+      content: "";
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      margin-right: 9px;
+      vertical-align: -2px;
+      border-radius: 4px;
+      background: var(--accent-red);
+    }
+    .horizontal-scroll-row {
+      gap: 16px;
+      padding: 5px 2px 16px;
+      scrollbar-width: none;
+    }
+    .horizontal-scroll-row::-webkit-scrollbar { display:none; }
+    .media-card {
+      flex-basis: 155px;
+      width: 155px;
+      transition: transform .22s ease, box-shadow .22s ease;
+    }
+    .media-card img {
+      height: 232px;
+      border-radius: 8px;
+    }
+    .media-card:hover {
+      transform: translateY(-5px) scale(1.025);
+      box-shadow: 0 14px 32px rgba(0,0,0,.48);
+    }
+
+    .mobile-bottom-nav {
+      display: none;
+    }
+
+    @media (max-width: 800px) {
+      body { padding-bottom: 72px; }
+      header {
+        height: auto;
+        min-height: 62px;
+        padding: 10px 14px;
+        gap: 10px;
+      }
+      .logo { font-size: 23px; }
+      .desktop-nav { display:none; }
+      .nav-actions {
+        margin-left: auto;
+        order: 2;
+      }
+      .nav-actions .icon-nav-btn {
+        display:none;
+      }
+      .search-form {
+        order: 3;
+        margin: 0;
+        width: 100%;
+      }
+      .search-form input {
+        height: 40px;
+      }
+      .search-form button {
+        width: 40px;
+        height: 40px;
+      }
+      #hero-banner {
+        min-height: 430px;
+        padding: 22px 18px 28px;
+        background-position: 60% center;
+      }
+      #hero-title { font-size: 31px; }
+      .media-row-section {
+        padding: 21px 12px 5px;
+      }
+      .section-header h2 { font-size: 18px; }
+      .media-card {
+        flex-basis: 126px;
+        width: 126px;
+      }
+      .media-card img { height: 189px; }
+      .mobile-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        background: rgba(10,10,12,.96);
+        border-top: 1px solid rgba(255,255,255,.08);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        z-index: 5000;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .mobile-bottom-nav button {
+        border: 0;
+        background: transparent;
+        color: #8f8f95;
+        min-width: 62px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+      .mobile-bottom-nav button i { font-size: 18px; }
+      .mobile-bottom-nav button.active { color: #fff; }
+      .mobile-bottom-nav .nav-home.active i,
+      .mobile-bottom-nav .nav-home.active { color: var(--accent-red); }
+      .mobile-bottom-nav .nav-search {
+        position: relative;
+        top: -12px;
+      }
+      .mobile-bottom-nav .nav-search span {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--accent-red);
+        color: #fff;
+        box-shadow: 0 7px 22px rgba(229,9,20,.32);
+      }
+      .mobile-bottom-nav .nav-search i { font-size: 19px; }
+    }
+
+      /* =====================================================
+       NOVEX LAUNCH EXPERIENCE
+       ===================================================== */
+    #novexSplash {
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(229,9,20,.16), transparent 34%),
+        #050507;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity .55s ease, visibility .55s ease;
+    }
+    #novexSplash.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .novex-splash-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      transform: translateY(0) scale(1);
+      animation: novexSplashIn .8s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .novex-splash-logo {
+      width: 92px;
+      height: 92px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      background: linear-gradient(145deg,#ed1721,#8f080d);
+      color: #fff;
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      box-shadow: 0 18px 60px rgba(229,9,20,.28);
+      animation: novexLogoPulse 1.8s ease-in-out .35s both;
+    }
+    .novex-splash-name {
+      color: #fff;
+      font-size: 29px;
+      font-weight: 850;
+      letter-spacing: 5px;
+    }
+    .novex-splash-tagline {
+      color: #888891;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .novex-splash-loader {
+      width: 90px;
+      height: 2px;
+      margin-top: 5px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: #27272c;
+    }
+    .novex-splash-loader::after {
+      content: "";
+      display: block;
+      width: 42%;
+      height: 100%;
+      border-radius: inherit;
+      background: #e50914;
+      animation: novexLoader 1.25s ease-in-out infinite;
+    }
+    @keyframes novexSplashIn {
+      from { opacity:0; transform:translateY(16px) scale(.94); }
+      to { opacity:1; transform:translateY(0) scale(1); }
+    }
+    @keyframes novexLogoPulse {
+      0%,100% { transform:scale(1); }
+      50% { transform:scale(1.055); }
+    }
+    @keyframes novexLoader {
+      0% { transform:translateX(-120%); }
+      100% { transform:translateX(260%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .novex-splash-inner,
+      .novex-splash-logo,
+      .novex-splash-loader::after {
+        animation: none;
+      }
+      #novexSplash { transition: none; }
+    }
+
+  </style></head><body>
+  <div id="novexSplash" aria-label="Loading Novex" role="status">
+    <div class="novex-splash-inner">
+      <div class="novex-splash-logo">N</div>
+      <div class="novex-splash-name">NOVEX</div>
+      <div class="novex-splash-tagline">Stream what you love</div>
+      <div class="novex-splash-loader" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- =====================================================
        HEADER
        ===================================================== -->  <header><a
   href="#"
@@ -678,6 +1022,13 @@
 >
   NOVEX
 </a>
+
+<nav class="desktop-nav" aria-label="Primary navigation">
+  <a href="#" class="active" onclick="loadAllCatalog(); return false;">Home</a>
+  <a href="#" onclick="loadAllCatalog(); return false;">Movies</a>
+  <a href="#" onclick="loadAllCatalog(); return false;">Series</a>
+  <a href="#" onclick="loadAllCatalog(); return false;">Anime</a>
+</nav>
 
 <div class="nav-actions">
 
@@ -742,7 +1093,41 @@
 
 </form>
 
-  </header>  <!-- =====================================================
+<div id="searchSuggestions" class="search-suggestions" hidden aria-label="Search suggestions">
+  <div class="search-suggestions-top">
+    <span id="searchSuggestionsLabel">Quick results</span>
+    <button id="searchSuggestionsClear" type="button" aria-label="Clear search">Clear</button>
+  </div>
+  <div class="search-filter-tabs" role="tablist" aria-label="Search filters">
+    <button class="search-filter-tab active" type="button" data-filter="all">All</button>
+    <button class="search-filter-tab" type="button" data-filter="movie">Movies</button>
+    <button class="search-filter-tab" type="button" data-filter="tv">Series</button>
+    <button class="search-filter-tab" type="button" data-filter="anime">Anime</button>
+  </div>
+  <div id="searchSuggestionsList" class="search-suggestions-list"></div>
+</div>
+
+  </header>
+
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <button class="nav-home active" type="button" onclick="loadAllCatalog()">
+      <i class="fa-solid fa-house"></i><span>Home</span>
+    </button>
+    <button type="button" onclick="loadWatchlist()">
+      <i class="fa-solid fa-bookmark"></i><span>My List</span>
+    </button>
+    <button class="nav-search" type="button" onclick="document.getElementById('search').focus(); window.scrollTo({top:0,behavior:'smooth'});">
+      <span><i class="fa-solid fa-magnifying-glass"></i></span><small>Search</small>
+    </button>
+    <button type="button" onclick="loadFavorites()">
+      <i class="fa-solid fa-heart"></i><span>Favorites</span>
+    </button>
+    <button type="button" onclick="loadDownloads()">
+      <i class="fa-solid fa-download"></i><span>Downloads</span>
+    </button>
+  </nav>
+
+  <!-- =====================================================
        AD AREA
        ===================================================== -->  <div
     class="ad-banner-container"
@@ -777,7 +1162,7 @@
 
   </div>  <!-- =====================================================
        HERO
-       ===================================================== -->  <section id="hero-banner"><div style="max-width:650px;">
+       ===================================================== -->  <section id="hero-banner"><div class="hero-content-shell">
 
   <h1 id="hero-title">
     NOVEX Stream
@@ -810,9 +1195,52 @@
 
 </div>
 
-  </section>  <!-- =====================================================
+  </section>
+  <!-- NOVEX WHATSAPP CHANNEL -->
+  <section id="whatsappWelcome" class="whatsapp-welcome" aria-label="Novex WhatsApp Channel" hidden>
+    <div class="whatsapp-welcome-icon"><i class="fa-brands fa-whatsapp"></i></div>
+    <div class="whatsapp-welcome-copy">
+      <span class="whatsapp-kicker">NOVEX COMMUNITY</span>
+      <h2>Stay updated with Novex</h2>
+      <p>Join our WhatsApp Channel for new movie, series and anime updates, launch news and important announcements.</p>
+    </div>
+    <div class="whatsapp-welcome-actions">
+      <a class="whatsapp-join-btn" href="https://whatsapp.com/channel/0029Vb9JkUrBPzjRTRPSb71Y" target="_blank" rel="noopener noreferrer">
+        <i class="fa-brands fa-whatsapp"></i> Join Channel
+      </a>
+      <button class="whatsapp-dismiss-btn" id="whatsappDismiss" type="button">Maybe later</button>
+    </div>
+  </section>
+  <!-- =====================================================
        MAIN CATALOG
-       ===================================================== -->  <main id="content-container"></main>  <!-- =====================================================
+       ===================================================== -->  <section id="surpriseMePanel" class="surprise-me-panel" hidden aria-label="Surprise Me">
+    <div class="surprise-me-copy">
+      <span class="surprise-me-kicker">NOVEX DISCOVERY</span>
+      <h2>Don't know what to watch?</h2>
+      <p>Let Novex pick something for you.</p>
+    </div>
+    <button id="surpriseMeButton" class="surprise-me-button" type="button">
+      <i class="fa-solid fa-shuffle"></i>
+      Surprise Me
+    </button>
+  </section>
+
+  <main id="content-container"></main>  <section id="titleDetails" class="title-details" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="title-details-backdrop" id="detailsBackdrop"></div>
+    <button class="title-details-close" id="detailsClose" type="button" aria-label="Close details"><i class="fa-solid fa-xmark"></i></button>
+    <div class="title-details-scroll">
+      <div class="title-details-content">
+        <div class="details-poster-wrap"><img id="detailsPoster" src="" alt=""></div>
+        <div class="details-copy"><div class="details-kicker" id="detailsKicker">NOVEX</div><h1 id="detailsTitle">Loading...</h1><div class="details-meta" id="detailsMeta"></div>
+          <div class="details-actions"><button class="details-play-btn" id="detailsPlay" type="button"><i class="fa-solid fa-play"></i> Play</button><button class="details-icon-btn" id="detailsWatchlist" type="button" aria-label="Add to Watchlist"><i class="fa-solid fa-bookmark"></i></button><button class="details-icon-btn" id="detailsFavorite" type="button" aria-label="Add to Favorites"><i class="fa-solid fa-heart"></i></button><button class="details-icon-btn" id="detailsDownload" type="button" aria-label="Save"><i class="fa-solid fa-download"></i></button></div>
+          <p class="details-overview" id="detailsOverview"></p><div class="details-genres" id="detailsGenres"></div>
+        </div>
+      </div>
+      <section class="details-section" id="detailsEpisodes" hidden><div class="details-section-heading"><h2>Episodes</h2><select id="detailsSeasonSelect" aria-label="Choose season"></select></div><div class="details-episode-list" id="detailsEpisodeList"></div></section>
+      <section class="details-section" id="detailsSimilarSection" hidden><h2>More Like This</h2><div class="details-similar-row" id="detailsSimilarRow"></div></section>
+    </div>
+  </section>
+  <!-- =====================================================
        VIDEO PLAYER
        ===================================================== -->  <div
     id="videoModal"
@@ -830,6 +1258,17 @@
     &times;
   </button>
 
+  <div class="novex-player-bar">
+    <div class="novex-player-now">
+      <span class="novex-player-kicker">NOW PLAYING</span>
+      <strong id="playerTitle">Novex</strong>
+      <span id="playerEpisodeLabel"></span>
+    </div>
+    <div class="novex-player-nav">
+      <button id="playerPrevBtn" type="button" title="Previous episode" aria-label="Previous episode"><i class="fa-solid fa-backward-step"></i></button>
+      <button id="playerNextBtn" type="button" title="Next episode" aria-label="Next episode"><i class="fa-solid fa-forward-step"></i></button>
+    </div>
+  </div>
   <div class="modal-actions">
 
     <button
