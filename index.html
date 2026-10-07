@@ -990,7 +990,27 @@
 
 </form>
 
-  </header>  <!-- =====================================================
+  </header>
+
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+    <button class="nav-home active" type="button" onclick="loadAllCatalog()">
+      <i class="fa-solid fa-house"></i><span>Home</span>
+    </button>
+    <button type="button" onclick="loadWatchlist()">
+      <i class="fa-solid fa-bookmark"></i><span>My List</span>
+    </button>
+    <button class="nav-search" type="button" onclick="document.getElementById('search').focus(); window.scrollTo({top:0,behavior:'smooth'});">
+      <span><i class="fa-solid fa-magnifying-glass"></i></span><small>Search</small>
+    </button>
+    <button type="button" onclick="loadFavorites()">
+      <i class="fa-solid fa-heart"></i><span>Favorites</span>
+    </button>
+    <button type="button" onclick="loadDownloads()">
+      <i class="fa-solid fa-download"></i><span>Downloads</span>
+    </button>
+  </nav>
+
+  <!-- =====================================================
        AD AREA
        ===================================================== -->  <div
     class="ad-banner-container"
