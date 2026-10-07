@@ -541,10 +541,21 @@
         if (!contentContainer) return;
 
         stopHeroSlider();
-
         contentContainer.innerHTML = "";
-
         hideSearchHistory();
+
+        const [continueItems, watchlist, favorites] = await Promise.all([
+            getContinueWatching(),
+            dbGetAll(STORE_WATCHLIST),
+            dbGetAll(STORE_FAVORITES)
+        ]);
+
+        // Returning users get their personal shelf before discovery content.
+        renderLocalSection("Continue Watching", continueItems);
+        renderLocalSection(
+            continueItems.length ? "My Picks" : "Your Library",
+            continueItems.length ? [] : [...favorites, ...watchlist]
+        );
 
         const [
             trendingAll,
@@ -554,101 +565,41 @@
             kdrama,
             cdrama
         ] = await Promise.all([
-            apiFetch(
-                "trending/all/week",
-                {},
-                FALLBACK_MEDIA
-            ),
-
-            apiFetch(
-                "trending/movie/week",
-                {},
-                FALLBACK_MOVIES
-            ),
-
-            apiFetch(
-                "trending/tv/week",
-                {},
-                FALLBACK_TV
-            ),
-
-            apiFetch(
-                "discover/tv",
-                {
-                    with_genres: 16,
-                    with_original_language: "ja",
-                    sort_by: "popularity.desc"
-                },
-                FALLBACK_TV
-            ),
-
-            apiFetch(
-                "discover/tv",
-                {
-                    with_original_language: "ko",
-                    sort_by: "popularity.desc"
-                },
-                FALLBACK_TV
-            ),
-
-            apiFetch(
-                "discover/tv",
-                {
-                    with_original_language: "zh",
-                    sort_by: "popularity.desc"
-                },
-                FALLBACK_TV
-            )
+            apiFetch("trending/all/week", {}, FALLBACK_MEDIA),
+            apiFetch("trending/movie/week", {}, FALLBACK_MOVIES),
+            apiFetch("trending/tv/week", {}, FALLBACK_TV),
+            apiFetch("discover/tv", {
+                with_genres: 16,
+                with_original_language: "ja",
+                sort_by: "popularity.desc"
+            }, FALLBACK_TV),
+            apiFetch("discover/tv", {
+                with_original_language: "ko",
+                sort_by: "popularity.desc"
+            }, FALLBACK_TV),
+            apiFetch("discover/tv", {
+                with_original_language: "zh",
+                sort_by: "popularity.desc"
+            }, FALLBACK_TV)
         ]);
 
-        heroItemsList =
-            trendingAll.length > 0
-                ? trendingAll.slice(0, 6)
-                : FALLBACK_MEDIA;
+        heroItemsList = trendingAll.length > 0
+            ? trendingAll.slice(0, 6)
+            : FALLBACK_MEDIA;
 
         startHeroSlider();
 
-        renderSection(
-            "Trending All",
-            trendingAll,
-            "movie"
-        );
+        if (!continueItems.length) {
+            renderSection("Trending Now", trendingAll, "movie");
+        } else {
+            renderSection("Trending Now", trendingAll.slice(0, 12), "movie");
+        }
 
-        renderSection(
-            "Trending Movies",
-            movies,
-            "movie"
-        );
-
-        renderSection(
-            "Trending TV Series",
-            series,
-            "tv"
-        );
-
-        renderSection(
-            "Anime",
-            anime,
-            "tv",
-            true
-        );
-
-        renderSection(
-            "K-Dramas",
-            kdrama,
-            "tv",
-            true
-        );
-
-        renderSection(
-            "C-Dramas",
-            cdrama,
-            "tv",
-            true
-        );
-
-        const continueItems = await getContinueWatching();
-        renderLocalSection("Continue Watching", continueItems);
+        renderSection("Trending Movies", movies, "movie");
+        renderSection("Trending TV Series", series, "tv");
+        renderSection("Anime", anime, "tv", true);
+        renderSection("K-Dramas", kdrama, "tv", true);
+        renderSection("C-Dramas", cdrama, "tv", true);
 
         await renderSmartRecommendations();
     }
@@ -895,47 +846,54 @@
 
     async function renderSmartRecommendations() {
         try {
-            const watchlist =
-                await dbGetAll(
-                    STORE_WATCHLIST
-                );
+            const [watchlist, favorites, continueItems] = await Promise.all([
+                dbGetAll(STORE_WATCHLIST),
+                dbGetAll(STORE_FAVORITES),
+                dbGetAll(STORE_CONTINUE)
+            ]);
 
-            const favorites =
-                await dbGetAll(
-                    STORE_FAVORITES
-                );
+            const seeds = [...continueItems, ...favorites, ...watchlist]
+                .filter(item => item && item.id != null)
+                .filter((item, index, arr) =>
+                    arr.findIndex(x => String(x.id) === String(item.id)) === index
+                )
+                .slice(0, 4);
 
-            const sample =
-                watchlist[0] ||
-                favorites[0];
+            if (!seeds.length) return;
 
-            if (!sample) return;
+            const recommendationGroups = await Promise.all(
+                seeds.map(async seed => {
+                    const type = seed.type === "tv" ? "tv" : "movie";
+                    return apiFetch(type + "/" + seed.id + "/similar", {}, [])
+                        .then(results => results.map(item => Object.assign({}, item, {media_type:type})));
+                })
+            );
 
-            const type =
-                sample.type === "tv"
-                    ? "tv"
-                    : "movie";
+            const seen = new Set(seeds.map(item => String(item.id)));
+            const recommendations = [];
 
-            const results =
-                await apiFetch(
-                    `${type}/${sample.id}/similar`,
-                    {},
-                    []
-                );
+            recommendationGroups.flat().forEach(item => {
+                if (!item || !item.id || !item.poster_path) return;
+                const key = String(item.id) + ":" + getMediaType(item);
+                if (seen.has(String(item.id)) || seen.has(key)) return;
+                seen.add(String(item.id));
+                seen.add(key);
+                recommendations.push(item);
+            });
 
-            if (results.length > 0) {
+            if (recommendations.length) {
+                const title = continueItems.length
+                    ? "Because You're Watching"
+                    : "Recommended For You";
+
                 renderSection(
-                    `Recommended For You`,
-                    results,
-                    type,
-                    type === "tv"
+                    title,
+                    recommendations.slice(0, 18),
+                    "movie"
                 );
             }
         } catch (error) {
-            console.error(
-                "Recommendation error:",
-                error
-            );
+            console.error("Recommendation error:", error);
         }
     }
 
