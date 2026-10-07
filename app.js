@@ -1467,11 +1467,40 @@
        INITIALIZATION
        ========================================================= */
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        () => {
+    document.addEventListener("DOMContentLoaded", () => {
+            setupWhatsAppChannelPrompt();
             loadAllCatalog();
-        }
-    );
+        });
 
 })();
+
+
+/* =========================================================
+   NOVEX WHATSAPP CHANNEL — FIRST VISIT PROMPT
+   ========================================================= */
+const NOVEX_WHATSAPP_CHANNEL = "https://whatsapp.com/channel/0029Vb9JkUrBPzjRTRPSb71Y";
+const NOVEX_WHATSAPP_PROMPT_KEY = "novex_whatsapp_prompt_seen";
+
+function setupWhatsAppChannelPrompt() {
+    const prompt = document.getElementById("whatsappWelcome");
+    const dismiss = document.getElementById("whatsappDismiss");
+    if (!prompt) return;
+
+    if (localStorage.getItem(NOVEX_WHATSAPP_PROMPT_KEY) !== "1") {
+        prompt.hidden = false;
+    }
+
+    if (dismiss) {
+        dismiss.addEventListener("click", () => {
+            localStorage.setItem(NOVEX_WHATSAPP_PROMPT_KEY, "1");
+            prompt.hidden = true;
+        });
+    }
+}
+
+function openNovexWhatsAppChannel() {
+    window.open(NOVEX_WHATSAPP_CHANNEL, "_blank", "noopener,noreferrer");
+}
+
+window.openNovexWhatsAppChannel = openNovexWhatsAppChannel;
+
