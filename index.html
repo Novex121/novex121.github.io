@@ -1003,7 +1003,21 @@
     }
 
   </style></head><body>
-  <div id="novexSplash" aria-label="Loading Novex" role="status">
+  <script>
+  // Fail-safe for normal browser visits: never block the website behind the app splash.
+  (function () {
+    try {
+      var standalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true;
+      if (!standalone) {
+        var splash = document.getElementById("novexSplash");
+        if (splash) splash.remove();
+      }
+    } catch (e) {}
+  })();
+</script>
+<div id="novexSplash" aria-label="Loading Novex" role="status">
     <div class="novex-splash-inner">
       <div class="novex-splash-logo">N</div>
       <div class="novex-splash-name">NOVEX</div>
