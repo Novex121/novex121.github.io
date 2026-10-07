@@ -1303,6 +1303,172 @@
        SEARCH
        ========================================================= */
 
+    /* =========================================================
+       NOVEX 2.0 — SMART SEARCH
+       ========================================================= */
+
+    const searchSuggestions = $("searchSuggestions");
+    const searchSuggestionsList = $("searchSuggestionsList");
+    const searchSuggestionsLabel = $("searchSuggestionsLabel");
+    const searchSuggestionsClear = $("searchSuggestionsClear");
+    const searchFilterTabs = document.querySelectorAll(".search-filter-tab");
+
+    let searchSuggestionTimer = null;
+    let searchSuggestionRequest = 0;
+    let searchSuggestionResults = [];
+    let searchSuggestionFilter = "all";
+    const searchSuggestionCache = new Map();
+
+    function getSearchItemType(item) {
+        return item.media_type === "movie" ? "movie" : "tv";
+    }
+
+    function isAnimeSearchItem(item) {
+        return getSearchItemType(item) === "tv" && (
+            item.original_language === "ja" ||
+            (Array.isArray(item.genre_ids) && item.genre_ids.includes(16))
+        );
+    }
+
+    function getSearchItemTitle(item) {
+        return item.title || item.name || "Untitled";
+    }
+
+    function getSearchItemYear(item) {
+        const date = item.release_date || item.first_air_date || "";
+        return date ? String(date).slice(0, 4) : "";
+    }
+
+    function filterSearchSuggestions(items) {
+        if (searchSuggestionFilter === "all") return items;
+        if (searchSuggestionFilter === "anime") return items.filter(isAnimeSearchItem);
+        return items.filter(item => getSearchItemType(item) === searchSuggestionFilter);
+    }
+
+    function renderSearchSuggestions(items, query) {
+        if (!searchSuggestionsList) return;
+        const filtered = filterSearchSuggestions(items);
+        searchSuggestionsList.innerHTML = "";
+
+        if (!filtered.length) {
+            const empty = document.createElement("div");
+            empty.className = "search-suggestion-empty";
+            empty.textContent = query
+                ? "No " + (searchSuggestionFilter === "all" ? "" : searchSuggestionFilter + " ") + "results found."
+                : "Start typing to discover movies, series and anime.";
+            searchSuggestionsList.appendChild(empty);
+            return;
+        }
+
+        filtered.slice(0, 8).forEach(item => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "search-suggestion-item";
+
+            const poster = document.createElement("img");
+            poster.className = "search-suggestion-poster";
+            poster.loading = "lazy";
+            poster.src = item.poster_path ? getPosterUrl(item.poster_path) : "";
+            poster.alt = "";
+
+            const copy = document.createElement("span");
+            copy.className = "search-suggestion-copy";
+
+            const title = document.createElement("span");
+            title.className = "search-suggestion-title";
+            title.textContent = getSearchItemTitle(item);
+
+            const meta = document.createElement("span");
+            meta.className = "search-suggestion-meta";
+            const year = getSearchItemYear(item);
+            const language = item.original_language ? item.original_language.toUpperCase() : "";
+            meta.textContent = [year, language].filter(Boolean).join(" • ");
+
+            const type = document.createElement("span");
+            type.className = "search-suggestion-type";
+            type.textContent = isAnimeSearchItem(item) ? "ANIME" : getSearchItemType(item) === "tv" ? "SERIES" : "MOVIE";
+            meta.appendChild(type);
+            copy.appendChild(title);
+            copy.appendChild(meta);
+
+            const arrow = document.createElement("span");
+            arrow.className = "search-suggestion-arrow";
+            arrow.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+
+            button.appendChild(poster);
+            button.appendChild(copy);
+            button.appendChild(arrow);
+
+            button.addEventListener("click", () => {
+                if (search) search.value = getSearchItemTitle(item);
+                saveSearchHistory(getSearchItemTitle(item));
+                hideSearchSuggestions();
+                if (typeof openTitleDetails === "function") {
+                    openTitleDetails(item);
+                } else {
+                    executeSearch(getSearchItemTitle(item));
+                }
+            });
+
+            searchSuggestionsList.appendChild(button);
+        });
+    }
+
+    function showSearchSuggestions() {
+        if (searchSuggestions) searchSuggestions.hidden = false;
+    }
+
+    function hideSearchSuggestions() {
+        if (searchSuggestions) searchSuggestions.hidden = true;
+    }
+
+    async function runLiveSearch(query) {
+        const cleanQuery = String(query || "").trim();
+        if (!cleanQuery) {
+            searchSuggestionResults = [];
+            hideSearchSuggestions();
+            showSearchHistory();
+            return;
+        }
+
+        if (cleanQuery.length < 2) {
+            searchSuggestionResults = [];
+            showSearchSuggestions();
+            renderSearchSuggestions([], cleanQuery);
+            return;
+        }
+
+        showSearchSuggestions();
+        if (searchSuggestionsLabel) searchSuggestionsLabel.textContent = 'Results for "' + cleanQuery + '"';
+        if (searchSuggestionsList) searchSuggestionsList.innerHTML = '<div class="search-suggestion-loading"><i class="fa-solid fa-spinner fa-spin"></i> Finding titles...</div>';
+
+        const requestId = ++searchSuggestionRequest;
+        const cacheKey = cleanQuery.toLowerCase();
+        if (searchSuggestionCache.has(cacheKey)) {
+            searchSuggestionResults = searchSuggestionCache.get(cacheKey);
+            if (requestId === searchSuggestionRequest) renderSearchSuggestions(searchSuggestionResults, cleanQuery);
+            return;
+        }
+
+        const results = await apiFetch("search/multi", { query: cleanQuery, include_adult: false, page: 1 }, []);
+        if (requestId !== searchSuggestionRequest) return;
+
+        searchSuggestionResults = results.filter(item =>
+            item && item.id && item.poster_path &&
+            (item.media_type === "movie" || item.media_type === "tv")
+        );
+        searchSuggestionCache.set(cacheKey, searchSuggestionResults);
+        if (searchSuggestionCache.size > 25) {
+            const firstKey = searchSuggestionCache.keys().next().value;
+            searchSuggestionCache.delete(firstKey);
+        }
+        renderSearchSuggestions(searchSuggestionResults, cleanQuery);
+    }
+
+    function scheduleLiveSearch() {
+        clearTimeout(searchSuggestionTimer);
+        searchSuggestionTimer = setTimeout(() => runLiveSearch(search ? search.value : ""), 280);
+    }
     async function executeSearch(
         searchTerm
     ) {
@@ -1605,11 +1771,46 @@
        ========================================================= */
 
     if (search) {
-        search.addEventListener(
-            "focus",
-            showSearchHistory
-        );
+        search.addEventListener("focus", () => {
+            if (search.value.trim()) scheduleLiveSearch();
+            else showSearchHistory();
+        });
+        search.addEventListener("input", scheduleLiveSearch);
+        search.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                hideSearchSuggestions();
+                search.blur();
+            }
+        });
     }
+
+    searchFilterTabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            searchFilterTabs.forEach(item => item.classList.remove("active"));
+            tab.classList.add("active");
+            searchSuggestionFilter = tab.dataset.filter || "all";
+            renderSearchSuggestions(searchSuggestionResults, search ? search.value.trim() : "");
+        });
+    });
+
+    if (searchSuggestionsClear) {
+        searchSuggestionsClear.addEventListener("click", () => {
+            if (search) {
+                search.value = "";
+                search.focus();
+            }
+            searchSuggestionResults = [];
+            hideSearchSuggestions();
+            showSearchHistory();
+        });
+    }
+
+    document.addEventListener("click", event => {
+        if (!searchSuggestions || !search) return;
+        if (!searchSuggestions.contains(event.target) && event.target !== search) {
+            hideSearchSuggestions();
+        }
+    });
 
     if (form) {
         form.addEventListener(
@@ -1619,6 +1820,8 @@
 
                 const term =
                     search?.value.trim();
+
+                hideSearchSuggestions();
 
                 if (term) {
                     executeSearch(term);
