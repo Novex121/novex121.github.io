@@ -18,7 +18,7 @@
     const TMDB_IMAGE = "https://image.tmdb.org/t/p/";
 
     const DB_NAME = "NovexAppDB";
-    const DB_VERSION = 3;
+    const DB_VERSION = 4;
 
     const STORE_DOWNLOADS = "downloads";
     const STORE_WATCHLIST = "watchlist";
