@@ -198,6 +198,12 @@
                         keyPath: "id"
                     });
                 }
+
+                if (!db.objectStoreNames.contains(STORE_CONTINUE)) {
+                    db.createObjectStore(STORE_CONTINUE, {
+                        keyPath: "id"
+                    });
+                }
             };
         });
     }
@@ -923,6 +929,7 @@
         };
 
         await updateModalActionButtons();
+        await saveContinueWatching();
 
         if (!videoModal) {
             console.error(
@@ -1180,6 +1187,249 @@
             `Search Results for "${searchTerm}"`,
             validResults
         );
+    }
+
+
+    /* =========================================================
+       NOVEX 2.0 — LOCAL LIBRARY + CONTINUE WATCHING
+       ========================================================= */
+
+    const STORE_CONTINUE = "continueWatching";
+
+    async function dbEnsureContinueStore() {
+        const db = await openAppDB();
+        return db;
+    }
+
+    async function saveContinueWatching() {
+        if (!currentMedia || !currentMedia.id) return;
+        try {
+            await dbPut(STORE_CONTINUE, {
+                id: String(currentMedia.id) + ":" + String(currentMedia.type || "movie"),
+                mediaId: currentMedia.id,
+                type: currentMedia.type,
+                title: currentMedia.title,
+                poster: currentMedia.poster,
+                season: currentMedia.currentSeason || 1,
+                episode: currentMedia.currentEpisode || 1,
+                updatedAt: Date.now()
+            });
+        } catch (error) {
+            console.warn("Continue watching save failed:", error);
+        }
+    }
+
+    async function getContinueWatching() {
+        try {
+            return await dbGetAll(STORE_CONTINUE);
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function renderLocalSection(title, items, emptyText = "") {
+        if (!contentContainer || !Array.isArray(items) || items.length === 0) return;
+        const section = document.createElement("section");
+        section.className = "media-row-section";
+
+        const header = document.createElement("div");
+        header.className = "section-header";
+        const heading = document.createElement("h2");
+        heading.textContent = title;
+        header.appendChild(heading);
+
+        const row = document.createElement("div");
+        row.className = "horizontal-scroll-row";
+
+        items.sort((a,b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
+            .slice(0, 12)
+            .forEach(item => {
+                const card = document.createElement("article");
+                card.className = "media-card";
+                card.tabIndex = 0;
+
+                const img = document.createElement("img");
+                img.src = item.poster ? getPosterUrl(item.poster) : "";
+                img.alt = item.title || "Novex title";
+                img.loading = "lazy";
+
+                const badge = document.createElement("span");
+                badge.className = "badge";
+                badge.textContent = item.type === "tv"
+                    ? `S${item.season || 1} E${item.episode || 1}`
+                    : "Continue";
+
+                const name = document.createElement("p");
+                name.textContent = item.title || "Untitled";
+
+                card.append(badge, img, name);
+
+                const open = () => openMedia(
+                    item.mediaId,
+                    item.type || "movie",
+                    item.type === "tv",
+                    item.title,
+                    item.poster
+                );
+
+                card.addEventListener("click", open);
+                card.addEventListener("keydown", e => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        open();
+                    }
+                });
+
+                row.appendChild(card);
+            });
+
+        section.append(header, row);
+        contentContainer.appendChild(section);
+    }
+
+    async function loadLocalLibrary(storeName, title) {
+        stopHeroSlider();
+        if (!contentContainer) return;
+        contentContainer.innerHTML = "";
+        hideSearchHistory();
+
+        try {
+            const items = await dbGetAll(storeName);
+            if (!items.length) {
+                const empty = document.createElement("div");
+                empty.style.padding = "40px 20px";
+                empty.style.textAlign = "center";
+                empty.innerHTML = "<h2>" + title + "</h2><p style='color:#aaa;margin-top:8px'>Nothing here yet.</p>";
+                contentContainer.appendChild(empty);
+                return;
+            }
+            renderLocalSection(title, items);
+        } catch (error) {
+            console.error(title + " error:", error);
+        }
+    }
+
+    async function loadWatchlist() {
+        await loadLocalLibrary(STORE_WATCHLIST, "My Watchlist");
+    }
+
+    async function loadFavorites() {
+        await loadLocalLibrary(STORE_FAVORITES, "My Favorites");
+    }
+
+    async function loadDownloads() {
+        await loadLocalLibrary(STORE_DOWNLOADS, "Saved for Offline");
+    }
+
+    async function toggleQuickWatchlist(item) {
+        if (!item || !item.id) return;
+        const exists = await dbExists(STORE_WATCHLIST, item.id);
+        if (exists) {
+            await dbDelete(STORE_WATCHLIST, item.id);
+        } else {
+            await dbPut(STORE_WATCHLIST, {
+                id: item.id,
+                type: getMediaType(item),
+                title: getMediaTitle(item),
+                poster: item.poster_path || "",
+                addedAt: Date.now()
+            });
+        }
+    }
+
+    async function toggleWatchlist() {
+        if (!currentMedia.id) return;
+        const exists = await dbExists(STORE_WATCHLIST, currentMedia.id);
+        if (exists) {
+            await dbDelete(STORE_WATCHLIST, currentMedia.id);
+        } else {
+            await dbPut(STORE_WATCHLIST, {
+                id: currentMedia.id,
+                type: currentMedia.type,
+                title: currentMedia.title,
+                poster: currentMedia.poster,
+                addedAt: Date.now()
+            });
+        }
+        await updateModalActionButtons();
+    }
+
+    async function toggleFavorite() {
+        if (!currentMedia.id) return;
+        const exists = await dbExists(STORE_FAVORITES, currentMedia.id);
+        if (exists) {
+            await dbDelete(STORE_FAVORITES, currentMedia.id);
+        } else {
+            await dbPut(STORE_FAVORITES, {
+                id: currentMedia.id,
+                type: currentMedia.type,
+                title: currentMedia.title,
+                poster: currentMedia.poster,
+                addedAt: Date.now()
+            });
+        }
+        await updateModalActionButtons();
+    }
+
+    async function toggleAppDownload() {
+        if (!currentMedia.id) return;
+        const key = String(currentMedia.id) + ":" + String(currentMedia.type || "movie");
+        const exists = await dbExists(STORE_DOWNLOADS, key);
+        if (exists) {
+            await dbDelete(STORE_DOWNLOADS, key);
+        } else {
+            await dbPut(STORE_DOWNLOADS, {
+                id: key,
+                mediaId: currentMedia.id,
+                type: currentMedia.type,
+                title: currentMedia.title,
+                poster: currentMedia.poster,
+                savedAt: Date.now(),
+                note: "Saved to Novex library. Playback download requires an authorized media source."
+            });
+        }
+        await updateModalActionButtons();
+    }
+
+    async function updateModalActionButtons() {
+        const pairs = [
+            ["modalWatchlistBtn", STORE_WATCHLIST],
+            ["modalFavoriteBtn", STORE_FAVORITES]
+        ];
+
+        for (const [id, store] of pairs) {
+            const button = $(id);
+            if (!button || !currentMedia.id) continue;
+            const active = await dbExists(store, currentMedia.id);
+            button.style.color = active ? "var(--accent-red)" : "white";
+        }
+
+        const downloadButton = $("modalDownloadBtn");
+        if (downloadButton && currentMedia.id) {
+            const key = String(currentMedia.id) + ":" + String(currentMedia.type || "movie");
+            const active = await dbExists(STORE_DOWNLOADS, key);
+            downloadButton.style.color = active ? "var(--accent-red)" : "white";
+        }
+    }
+
+    window.loadWatchlist = loadWatchlist;
+    window.loadFavorites = loadFavorites;
+    window.loadDownloads = loadDownloads;
+    window.toggleWatchlist = toggleWatchlist;
+    window.toggleFavorite = toggleFavorite;
+    window.toggleAppDownload = toggleAppDownload;
+    window.toggleQuickWatchlist = toggleQuickWatchlist;
+
+    /* =========================================================
+       PWA SERVICE WORKER
+       ========================================================= */
+
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("./sw.js", { scope: "./" })
+                .then(() => console.log("NOVEX service worker ready"))
+                .catch(error => console.warn("NOVEX service worker failed:", error));
+        });
     }
 
     /* =========================================================
