@@ -523,3 +523,41 @@ body {
 @media(max-width:480px){
   .search-suggestions{top:112px;left:8px;right:8px;padding:9px;border-radius:12px}
 }
+
+
+/* =====================================================
+   NOVEX 2.0 — SURPRISE ME
+   ===================================================== */
+.surprise-me-panel{
+  width:min(1180px,calc(100% - 32px));
+  margin:20px auto 8px;
+  padding:22px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  background:linear-gradient(110deg,rgba(229,9,20,.12),rgba(255,255,255,.035));
+}
+.surprise-me-panel[hidden]{display:none}
+.surprise-me-kicker{font-size:10px;letter-spacing:2px;font-weight:800;color:#e50914}
+.surprise-me-copy h2{margin:5px 0 3px;font-size:20px;color:#fff}
+.surprise-me-copy p{margin:0;color:#8e8e96;font-size:13px}
+.surprise-me-button{
+  flex:0 0 auto;
+  border:0;
+  border-radius:999px;
+  padding:12px 18px;
+  background:#e50914;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:0 8px 25px rgba(229,9,20,.18);
+}
+.surprise-me-button:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.surprise-me-button:active{transform:translateY(0)}
+@media(max-width:600px){
+  .surprise-me-panel{width:calc(100% - 20px);padding:18px;align-items:flex-start;flex-direction:column}
+  .surprise-me-button{width:100%}
+}
