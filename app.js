@@ -23,6 +23,7 @@
     const STORE_DOWNLOADS = "downloads";
     const STORE_WATCHLIST = "watchlist";
     const STORE_FAVORITES = "favorites";
+    const STORE_CONTINUE = "continueWatching";
 
     let currentLang = "en-US";
 
@@ -604,6 +605,9 @@
             "tv",
             true
         );
+
+        const continueItems = await getContinueWatching();
+        renderLocalSection("Continue Watching", continueItems);
 
         await renderSmartRecommendations();
     }
@@ -1193,8 +1197,6 @@
     /* =========================================================
        NOVEX 2.0 — LOCAL LIBRARY + CONTINUE WATCHING
        ========================================================= */
-
-    const STORE_CONTINUE = "continueWatching";
 
     async function dbEnsureContinueStore() {
         const db = await openAppDB();
