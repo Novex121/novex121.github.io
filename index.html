@@ -1093,6 +1093,20 @@
 
 </form>
 
+<div id="searchSuggestions" class="search-suggestions" hidden aria-label="Search suggestions">
+  <div class="search-suggestions-top">
+    <span id="searchSuggestionsLabel">Quick results</span>
+    <button id="searchSuggestionsClear" type="button" aria-label="Clear search">Clear</button>
+  </div>
+  <div class="search-filter-tabs" role="tablist" aria-label="Search filters">
+    <button class="search-filter-tab active" type="button" data-filter="all">All</button>
+    <button class="search-filter-tab" type="button" data-filter="movie">Movies</button>
+    <button class="search-filter-tab" type="button" data-filter="tv">Series</button>
+    <button class="search-filter-tab" type="button" data-filter="anime">Anime</button>
+  </div>
+  <div id="searchSuggestionsList" class="search-suggestions-list"></div>
+</div>
+
   </header>
 
   <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
