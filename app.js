@@ -1103,6 +1103,7 @@
             currentEpisode: 1,
             audioType: "sub"
         };
+        updatePlayerHeader();
 
         await updateModalActionButtons();
         await saveContinueWatching();
@@ -1210,40 +1211,22 @@
                 seasons
             );
 
-            const firstSeason =
-                seasons.find(
-                    s =>
-                        s.season_number > 0
-                ) || seasons[0];
-
-            const seasonNumber =
-                firstSeason
-                    ? firstSeason.season_number
-                    : 1;
-
-            currentMedia.currentSeason =
-                seasonNumber;
-
-            if (seasonSelect) {
-                seasonSelect.value =
-                    String(
-                        seasonNumber
-                    );
-            }
-
+            const firstSeason = seasons.find(s => s.season_number > 0) || seasons[0];
+            const saved = await getSavedContinueItem(currentMedia.id, "tv");
+            const savedSeason = saved ? Number(saved.season || 0) : 0;
+            const savedEpisode = saved ? Number(saved.episode || 0) : 0;
+            const seasonNumber = savedSeason > 0 && seasons.some(s => Number(s.season_number) === savedSeason)
+                ? savedSeason : (firstSeason ? firstSeason.season_number : 1);
+            currentMedia.currentSeason = seasonNumber;
+            if (seasonSelect) seasonSelect.value = String(seasonNumber);
             updateEpisodeDropdown();
-
-            currentMedia.currentEpisode =
-                1;
-
-            if (episodeSelect) {
-                episodeSelect.value = "1";
-            }
-
-            updatePlayerUrl(
-                seasonNumber,
-                1
-            );
+            const seasonMeta = seasons.find(s => Number(s.season_number) === Number(seasonNumber));
+            const maxEpisode = seasonMeta && Number(seasonMeta.episode_count) > 0 ? Number(seasonMeta.episode_count) : 1;
+            const episodeNumber = savedEpisode > 0 && savedEpisode <= maxEpisode ? savedEpisode : 1;
+            currentMedia.currentEpisode = episodeNumber;
+            if (episodeSelect) episodeSelect.value = String(episodeNumber);
+            updatePlayerHeader();
+            updatePlayerUrl(seasonNumber, episodeNumber);
         } catch (error) {
             console.error(
                 "TV details error:",
@@ -1261,7 +1244,55 @@
 
         iframe.src =
             `https://vidsrc.me/embed/movie?tmdb=${encodeURIComponent(id)}`;
+        updatePlayerHeader();
     }
+
+    async function getSavedContinueItem(mediaId, type) {
+        try {
+            const items = await getContinueWatching();
+            return items.find(item => String(item.mediaId || "").split(":")[0] === String(mediaId) && item.type === type) || null;
+        } catch (error) { return null; }
+    }
+
+    function updatePlayerHeader() {
+        const titleEl = $("playerTitle");
+        const episodeEl = $("playerEpisodeLabel");
+        if (titleEl) titleEl.textContent = currentMedia.title || "Novex";
+        if (episodeEl) episodeEl.textContent = currentMedia.type === "tv" ? "S" + currentMedia.currentSeason + " • E" + currentMedia.currentEpisode : "Movie";
+        updatePlayerNavigation();
+    }
+
+    function updatePlayerNavigation() {
+        const prev = $("playerPrevBtn"), next = $("playerNextBtn");
+        if (!prev || !next) return;
+        if (currentMedia.type !== "tv") { prev.disabled = true; next.disabled = true; return; }
+        const seasons = (currentMedia.seasonsData || []).filter(s => Number(s.season_number) > 0);
+        const index = seasons.findIndex(s => Number(s.season_number) === Number(currentMedia.currentSeason));
+        const current = index >= 0 ? seasons[index] : null;
+        const count = current ? Number(current.episode_count || 0) : 0;
+        prev.disabled = currentMedia.currentEpisode <= 1 && index <= 0;
+        next.disabled = count > 0 ? currentMedia.currentEpisode >= count && index >= seasons.length - 1 : false;
+    }
+
+    async function goToPreviousEpisode() {
+        if (currentMedia.type !== "tv") return;
+        if (currentMedia.currentEpisode > 1) { if (episodeSelect) episodeSelect.value = String(--currentMedia.currentEpisode); updatePlayerUrl(currentMedia.currentSeason, currentMedia.currentEpisode); await saveContinueWatching(); updatePlayerHeader(); return; }
+        const seasons = (currentMedia.seasonsData || []).filter(s => Number(s.season_number) > 0);
+        const index = seasons.findIndex(s => Number(s.season_number) === Number(currentMedia.currentSeason));
+        if (index > 0) { const season=seasons[index-1]; currentMedia.currentSeason=Number(season.season_number); updateEpisodeDropdown(); const count=Number(season.episode_count||1); currentMedia.currentEpisode=Math.max(1,count); if(seasonSelect) seasonSelect.value=String(currentMedia.currentSeason); if(episodeSelect) episodeSelect.value=String(currentMedia.currentEpisode); updatePlayerUrl(currentMedia.currentSeason,currentMedia.currentEpisode); await saveContinueWatching(); updatePlayerHeader(); }
+    }
+
+    async function goToNextEpisode() {
+        if (currentMedia.type !== "tv") return;
+        const seasons=(currentMedia.seasonsData||[]).filter(s=>Number(s.season_number)>0);
+        const index=seasons.findIndex(s=>Number(s.season_number)===Number(currentMedia.currentSeason));
+        const current=index>=0?seasons[index]:null, count=current?Number(current.episode_count||0):0;
+        if(count>0 && currentMedia.currentEpisode<count){currentMedia.currentEpisode++;if(episodeSelect)episodeSelect.value=String(currentMedia.currentEpisode);updatePlayerUrl(currentMedia.currentSeason,currentMedia.currentEpisode);await saveContinueWatching();updatePlayerHeader();return;}
+        if(index>=0 && index<seasons.length-1){currentMedia.currentSeason=Number(seasons[index+1].season_number);currentMedia.currentEpisode=1;if(seasonSelect)seasonSelect.value=String(currentMedia.currentSeason);updateEpisodeDropdown();if(episodeSelect)episodeSelect.value="1";updatePlayerUrl(currentMedia.currentSeason,1);await saveContinueWatching();updatePlayerHeader();}
+    }
+
+    $("playerPrevBtn")?.addEventListener("click", goToPreviousEpisode);
+    $("playerNextBtn")?.addEventListener("click", goToNextEpisode);
 
     function closePlayer() {
         if (iframe) {
