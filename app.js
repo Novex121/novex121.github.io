@@ -1018,6 +1018,8 @@
                     renderDetailsSimilar(similar, type);
                 }
             } catch (error) { console.warn("Title details request failed:", error); }
+        } else if (type === "tv") {
+            detailsEpisodes.hidden = true;
         }
     }
 
