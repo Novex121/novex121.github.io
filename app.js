@@ -80,33 +80,46 @@
             window.matchMedia("(display-mode: standalone)").matches ||
             window.navigator.standalone === true;
 
-        // The premium launch animation is intended for the installed app.
-        // Browser visits stay fast and go directly to the catalog.
         if (!standalone) {
             novexSplash.classList.add("is-hidden");
             return;
         }
 
+        // Keep the launch animation premium, but never allow it to block
+        // the app indefinitely if the page has a slow/hung load event.
         const minimumTime = 1150;
+        const maximumTime = 3000;
         const startedAt = performance.now();
+        let finished = false;
 
-        const finish = () => {
+        const hide = () => {
+            if (finished) return;
+            finished = true;
+
             const elapsed = performance.now() - startedAt;
             const remaining = Math.max(0, minimumTime - elapsed);
 
             window.setTimeout(() => {
                 novexSplash.classList.add("is-hidden");
-                window.setTimeout(() => novexSplash.remove(), 650);
+                window.setTimeout(() => {
+                    if (novexSplash && novexSplash.isConnected) {
+                        novexSplash.remove();
+                    }
+                }, 650);
             }, remaining);
         };
 
+        // Normal path: wait for the page to finish loading, but respect the
+        // minimum animation time.
         if (document.readyState === "complete") {
-            finish();
+            hide();
         } else {
-            window.addEventListener("load", finish, { once: true });
+            window.addEventListener("load", hide, { once: true });
         }
-    }
 
+        // Safety valve: the splash can never trap the user indefinitely.
+        window.setTimeout(hide, maximumTime);
+    }
     showNovexSplash();
 
     const heroBanner = $("hero-banner");
