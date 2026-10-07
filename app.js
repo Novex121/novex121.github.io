@@ -731,13 +731,7 @@
 
         if (heroPlayBtn) {
             heroPlayBtn.onclick = () => {
-                openMedia(
-                    item.id,
-                    type,
-                    dubbable,
-                    title,
-                    item.poster_path
-                );
+                openTitleDetails(item, type);
             };
         }
 
@@ -948,6 +942,183 @@
     /* =========================================================
        PLAYER
        ========================================================= */
+
+
+    /* =========================================================
+       TITLE DETAILS EXPERIENCE
+       ========================================================= */
+    let detailsMedia = null;
+    const titleDetails = $("titleDetails");
+    const detailsBackdrop = $("detailsBackdrop");
+    const detailsPoster = $("detailsPoster");
+    const detailsTitle = $("detailsTitle");
+    const detailsKicker = $("detailsKicker");
+    const detailsMeta = $("detailsMeta");
+    const detailsOverview = $("detailsOverview");
+    const detailsGenres = $("detailsGenres");
+    const detailsEpisodes = $("detailsEpisodes");
+    const detailsSeasonSelect = $("detailsSeasonSelect");
+    const detailsEpisodeList = $("detailsEpisodeList");
+    const detailsSimilarSection = $("detailsSimilarSection");
+    const detailsSimilarRow = $("detailsSimilarRow");
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = String(value || "");
+        return div.innerHTML;
+    }
+
+    function detailYear(item) {
+        const date = item.release_date || item.first_air_date || "";
+        return date ? date.slice(0, 4) : "";
+    }
+
+    function setDetailsButtonState(button, active) {
+        if (button) button.classList.toggle("is-active", Boolean(active));
+    }
+
+    async function openTitleDetails(item, fallbackType) {
+        if (!item || !item.id || !titleDetails) return;
+        stopHeroSlider();
+        const type = getMediaType(item, fallbackType || "movie");
+        detailsMedia = Object.assign({}, item, {media_type:type});
+        titleDetails.classList.add("is-open");
+        titleDetails.setAttribute("aria-hidden", "false");
+        document.body.classList.add("details-open");
+
+        const title = getMediaTitle(detailsMedia);
+        detailsTitle.textContent = title;
+        detailsKicker.textContent = type === "tv" ? "SERIES" : "MOVIE";
+        detailsPoster.src = getPosterUrl(detailsMedia.poster_path || detailsMedia.poster || "");
+        detailsPoster.alt = title;
+        const backdrop = detailsMedia.backdrop_path || detailsMedia.poster_path || detailsMedia.poster || "";
+        detailsBackdrop.style.backgroundImage = backdrop ? 'url("' + getBackdropUrl(backdrop) + '")' : "none";
+        detailsMeta.textContent = [detailYear(detailsMedia), detailsMedia.vote_average ? "⭐ " + Number(detailsMedia.vote_average).toFixed(1) : "", type === "tv" ? "Series" : "Movie", isDubbable(detailsMedia) ? "Sub & Dub" : "Sub"].filter(Boolean).join(" • ");
+        detailsOverview.textContent = detailsMedia.overview || "Discover more about this title on Novex. Choose Play to start watching.";
+        detailsGenres.innerHTML = Array.isArray(detailsMedia.genres) ? detailsMedia.genres.map(function(g){ return '<span class="details-genre">' + escapeHtml(g.name) + '</span>'; }).join("") : "";
+        detailsEpisodes.hidden = type !== "tv";
+        detailsSimilarSection.hidden = true;
+        detailsEpisodeList.innerHTML = type === "tv" ? '<div class="details-loading">Loading episodes...</div>' : "";
+
+        setDetailsButtonState($("detailsWatchlist"), await dbExists(STORE_WATCHLIST, detailsMedia.id));
+        setDetailsButtonState($("detailsFavorite"), await dbExists(STORE_FAVORITES, detailsMedia.id));
+        setDetailsButtonState($("detailsDownload"), await dbExists(STORE_DOWNLOADS, String(detailsMedia.id) + ":" + type));
+
+        if (TMDB_API_KEY !== "YOUR_NEW_TMDB_API_KEY") {
+            try {
+                const response = await fetch(getApiUrl(type + "/" + item.id, {append_to_response:"similar"}));
+                if (response.ok) {
+                    const full = await response.json();
+                    detailsMedia = Object.assign(detailsMedia, full, {media_type:type});
+                    detailsOverview.textContent = full.overview || detailsOverview.textContent;
+                    detailsMeta.textContent = [detailYear(full), full.vote_average ? "⭐ " + Number(full.vote_average).toFixed(1) : "", type === "tv" ? ((full.number_of_seasons || 0) + " Seasons") : (full.runtime ? full.runtime + " min" : ""), isDubbable(detailsMedia) ? "Sub & Dub" : "Sub"].filter(Boolean).join(" • ");
+                    detailsGenres.innerHTML = Array.isArray(full.genres) ? full.genres.map(function(g){ return '<span class="details-genre">' + escapeHtml(g.name) + '</span>'; }).join("") : "";
+                    if (type === "tv") renderDetailsSeasons(full.seasons || []);
+                    const similar = full.similar && Array.isArray(full.similar.results) ? full.similar.results.slice(0, 12) : [];
+                    renderDetailsSimilar(similar, type);
+                }
+            } catch (error) { console.warn("Title details request failed:", error); }
+        }
+    }
+
+    function renderDetailsSeasons(seasons) {
+        const usable = (seasons || []).filter(function(s){ return Number(s.season_number) > 0; });
+        detailsSeasonSelect.innerHTML = usable.map(function(s){ return '<option value="' + s.season_number + '">' + escapeHtml(s.name || ("Season " + s.season_number)) + '</option>'; }).join("");
+        if (!usable.length) { detailsEpisodes.hidden = true; return; }
+        detailsEpisodes.hidden = false;
+        detailsSeasonSelect.onchange = function(){ loadDetailsEpisodes(Number(detailsSeasonSelect.value)); };
+        loadDetailsEpisodes(usable[0].season_number);
+    }
+
+    async function loadDetailsEpisodes(seasonNumber) {
+        if (!detailsMedia || detailsMedia.media_type !== "tv") return;
+        detailsEpisodeList.innerHTML = '<div class="details-loading">Loading episodes...</div>';
+        if (TMDB_API_KEY === "YOUR_NEW_TMDB_API_KEY") {
+            detailsEpisodeList.innerHTML = '<div class="details-loading">Add your TMDB key to load episode information.</div>';
+            return;
+        }
+        try {
+            const response = await fetch(getApiUrl("tv/" + detailsMedia.id + "/season/" + seasonNumber));
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            const data = await response.json();
+            detailsEpisodeList.innerHTML = (data.episodes || []).map(function(ep){
+                return '<button class="details-episode" type="button" data-episode="' + ep.episode_number + '"><strong>' + ep.episode_number + '. ' + escapeHtml(ep.name || "Episode") + '</strong><span>' + escapeHtml(ep.overview ? ep.overview.slice(0,90) : "Ready to watch") + '</span></button>';
+            }).join("");
+            detailsEpisodeList.querySelectorAll(".details-episode").forEach(function(btn){
+                btn.addEventListener("click", function(){
+                    const episode = Number(btn.dataset.episode);
+                    const media = detailsMedia;
+                    closeTitleDetails();
+                    openMedia(media.id, "tv", isDubbable(media), getMediaTitle(media), media.poster_path || "");
+                    setTimeout(function(){
+                        if (seasonSelect) seasonSelect.value = String(seasonNumber);
+                        onSeasonChange();
+                        setTimeout(function(){
+                            if (episodeSelect) {
+                                episodeSelect.value = String(episode);
+                                onEpisodeChange();
+                            }
+                        }, 180);
+                    }, 300);
+                });
+            });
+        } catch (error) {
+            detailsEpisodeList.innerHTML = '<div class="details-loading">Episodes are unavailable right now.</div>';
+        }
+    }
+
+    function renderDetailsSimilar(items, type) {
+        const valid = (items || []).filter(function(x){ return x && x.id && x.poster_path; }).slice(0,12);
+        if (!valid.length) { detailsSimilarSection.hidden = true; return; }
+        detailsSimilarSection.hidden = false;
+        detailsSimilarRow.innerHTML = valid.map(function(x){
+            return '<article class="details-similar-card" data-id="' + x.id + '"><img src="' + getPosterUrl(x.poster_path) + '" alt="' + escapeHtml(getMediaTitle(x)) + '" loading="lazy"><p>' + escapeHtml(getMediaTitle(x)) + '</p></article>';
+        }).join("");
+        detailsSimilarRow.querySelectorAll(".details-similar-card").forEach(function(card){
+            const found = valid.find(function(x){ return String(x.id) === String(card.dataset.id); });
+            card.addEventListener("click", function(){ openTitleDetails(found, type); });
+        });
+    }
+
+    function closeTitleDetails() {
+        if (!titleDetails) return;
+        titleDetails.classList.remove("is-open");
+        titleDetails.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("details-open");
+        detailsMedia = null;
+        startHeroSlider();
+    }
+
+    $("detailsClose")?.addEventListener("click", closeTitleDetails);
+    $("detailsPlay")?.addEventListener("click", function(){
+        if (!detailsMedia) return;
+        const media = detailsMedia;
+        closeTitleDetails();
+        openMedia(media.id, media.media_type, isDubbable(media), getMediaTitle(media), media.poster_path || "");
+    });
+    $("detailsWatchlist")?.addEventListener("click", async function(){
+        if (!detailsMedia) return;
+        const id = detailsMedia.id, exists = await dbExists(STORE_WATCHLIST, id);
+        if (exists) await dbDelete(STORE_WATCHLIST, id);
+        else await dbPut(STORE_WATCHLIST, {id:id,type:getMediaType(detailsMedia),title:getMediaTitle(detailsMedia),poster:detailsMedia.poster_path || "",addedAt:Date.now()});
+        setDetailsButtonState($("detailsWatchlist"), !exists);
+    });
+    $("detailsFavorite")?.addEventListener("click", async function(){
+        if (!detailsMedia) return;
+        const id = detailsMedia.id, exists = await dbExists(STORE_FAVORITES, id);
+        if (exists) await dbDelete(STORE_FAVORITES, id);
+        else await dbPut(STORE_FAVORITES, {id:id,type:getMediaType(detailsMedia),title:getMediaTitle(detailsMedia),poster:detailsMedia.poster_path || "",addedAt:Date.now()});
+        setDetailsButtonState($("detailsFavorite"), !exists);
+    });
+    $("detailsDownload")?.addEventListener("click", async function(){
+        if (!detailsMedia) return;
+        const type = getMediaType(detailsMedia), key = String(detailsMedia.id) + ":" + type, exists = await dbExists(STORE_DOWNLOADS, key);
+        if (exists) await dbDelete(STORE_DOWNLOADS, key);
+        else await dbPut(STORE_DOWNLOADS, {id:key,mediaId:detailsMedia.id,type:type,title:getMediaTitle(detailsMedia),poster:detailsMedia.poster_path || "",savedAt:Date.now(),note:"Saved to Novex library. Playback download requires an authorized media source."});
+        setDetailsButtonState($("detailsDownload"), !exists);
+    });
+    window.openTitleDetails = openTitleDetails;
+    window.closeTitleDetails = closeTitleDetails;
 
     async function openMedia(
         id,
@@ -1307,13 +1478,7 @@
 
                 card.append(badge, img, name);
 
-                const open = () => openMedia(
-                    item.mediaId,
-                    item.type || "movie",
-                    item.type === "tv",
-                    item.title,
-                    item.poster
-                );
+                const open = () => openTitleDetails({id:item.mediaId,media_type:item.type || "movie",title:item.title,name:item.title,poster_path:item.poster || ""}, item.type || "movie");
 
                 card.addEventListener("click", open);
                 card.addEventListener("keydown", e => {
