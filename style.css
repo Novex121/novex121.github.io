@@ -573,3 +573,25 @@ body {
 @media(max-width:1100px){.search-results-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:850px){.search-results-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.search-results-section{width:calc(100% - 20px)}}
 @media(max-width:560px){.search-results-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.search-result-card-info h3{font-size:11px}}
+
+
+/* =====================================================
+   NOVEX 2.0 — PLAYER EXPERIENCE
+   ===================================================== */
+.novex-player-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 18px;background:linear-gradient(180deg,#111114,#09090b);border-bottom:1px solid rgba(255,255,255,.07);z-index:10002}
+.novex-player-now{min-width:0;display:flex;align-items:center;gap:10px}
+.novex-player-now strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(55vw,520px)}
+.novex-player-kicker{font-size:9px;letter-spacing:1.6px;color:#e50914;font-weight:850}
+#playerEpisodeLabel{font-size:11px;color:#85858d;white-space:nowrap}
+.novex-player-nav{display:flex;gap:7px}
+.novex-player-nav button{width:36px;height:36px;border:1px solid rgba(255,255,255,.12);border-radius:50%;background:#1b1b1f;color:#fff;cursor:pointer}
+.novex-player-nav button:hover:not(:disabled){background:#e50914;border-color:#e50914}
+.novex-player-nav button:disabled{opacity:.3;cursor:not-allowed}
+@media(max-width:600px){
+  .novex-player-bar{padding:9px 11px}
+  .novex-player-now{gap:7px}
+  .novex-player-kicker{display:none}
+  .novex-player-now strong{max-width:46vw;font-size:12px}
+  #playerEpisodeLabel{font-size:10px}
+  .novex-player-nav button{width:34px;height:34px}
+}
