@@ -1469,6 +1469,193 @@
         clearTimeout(searchSuggestionTimer);
         searchSuggestionTimer = setTimeout(() => runLiveSearch(search ? search.value : ""), 280);
     }
+    /* =========================================================
+       NOVEX 2.0 — SURPRISE ME + FULL SEARCH
+       ========================================================= */
+
+    const surpriseMePanel = $("surpriseMePanel");
+    const surpriseMeButton = $("surpriseMeButton");
+
+    function showSurpriseMe(show = true) {
+        if (surpriseMePanel) surpriseMePanel.hidden = !show;
+    }
+
+    function getDiscoverType(item) {
+        return item && item.media_type === "tv" ? "tv" : "movie";
+    }
+
+    function getSearchResultTitle(item) {
+        return item.title || item.name || "Untitled";
+    }
+
+    function renderFullSearchResults(title, results, filter = "all") {
+        if (!contentContainer) return;
+        contentContainer.innerHTML = "";
+        showSurpriseMe(false);
+
+        const section = document.createElement("section");
+        section.className = "media-row-section search-results-section";
+
+        const header = document.createElement("div");
+        header.className = "section-header";
+        const heading = document.createElement("h2");
+        heading.textContent = title;
+        header.appendChild(heading);
+
+        const count = document.createElement("span");
+        count.className = "search-result-count";
+        count.textContent = results.length + " titles";
+        header.appendChild(count);
+        section.appendChild(header);
+
+        const filtered = results.filter(item => {
+            if (filter === "all") return true;
+            if (filter === "anime") return isAnimeSearchItem(item);
+            return getDiscoverType(item) === filter;
+        });
+
+        const grid = document.createElement("div");
+        grid.className = "search-results-grid";
+
+        filtered.forEach(item => {
+            const card = document.createElement("article");
+            card.className = "media-card search-result-card";
+            card.tabIndex = 0;
+
+            const image = document.createElement("img");
+            image.loading = "lazy";
+            image.src = item.poster_path ? getPosterUrl(item.poster_path) : "";
+            image.alt = getSearchResultTitle(item);
+
+            const info = document.createElement("div");
+            info.className = "search-result-card-info";
+
+            const name = document.createElement("h3");
+            name.textContent = getSearchResultTitle(item);
+
+            const meta = document.createElement("span");
+            meta.textContent = [
+                getSearchItemYear(item),
+                isAnimeSearchItem(item) ? "Anime" : getDiscoverType(item) === "tv" ? "Series" : "Movie"
+            ].filter(Boolean).join(" • ");
+
+            info.appendChild(name);
+            info.appendChild(meta);
+            card.appendChild(image);
+            card.appendChild(info);
+
+            const open = () => openTitleDetails(item);
+            card.addEventListener("click", open);
+            card.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    open();
+                }
+            });
+
+            grid.appendChild(card);
+        });
+
+        if (!filtered.length) {
+            const empty = document.createElement("div");
+            empty.className = "search-suggestion-empty";
+            empty.textContent = "No titles match this filter.";
+            section.appendChild(empty);
+        } else {
+            section.appendChild(grid);
+        }
+
+        contentContainer.appendChild(section);
+    }
+
+    async function runFullSearch(searchTerm) {
+        const term = String(searchTerm || "").trim();
+        if (!term) return;
+
+        stopHeroSlider();
+        hideSearchHistory();
+        hideSearchSuggestions();
+        saveSearchHistory(term);
+        if (search) search.value = term;
+
+        if (contentContainer) {
+            contentContainer.innerHTML =
+                '<div class="search-suggestion-loading" style="padding:50px"><i class="fa-solid fa-spinner fa-spin"></i> Searching Novex...</div>';
+        }
+
+        const results = await apiFetch("search/multi", {
+            query: term,
+            include_adult: false,
+            page: 1
+        }, []);
+
+        const valid = results.filter(item =>
+            item &&
+            item.id &&
+            item.poster_path &&
+            (item.media_type === "movie" || item.media_type === "tv")
+        );
+
+        if (!valid.length) {
+            if (contentContainer) {
+                contentContainer.innerHTML = "";
+                const empty = document.createElement("div");
+                empty.className = "search-suggestion-empty";
+                empty.style.padding = "60px 20px";
+                empty.textContent = 'No results found for "' + term + '". Try another title.';
+                contentContainer.appendChild(empty);
+            }
+            showSurpriseMe(true);
+            return;
+        }
+
+        renderFullSearchResults('Search Results for "' + term + '"', valid);
+    }
+
+    async function surpriseMe() {
+        if (surpriseMeButton) {
+            surpriseMeButton.disabled = true;
+            surpriseMeButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Finding a pick...';
+        }
+
+        try {
+            const [trending, movies, tv] = await Promise.all([
+                apiFetch("trending/all/week", {}, FALLBACK_MEDIA),
+                apiFetch("trending/movie/week", {}, FALLBACK_MOVIES),
+                apiFetch("trending/tv/week", {}, FALLBACK_TV)
+            ]);
+
+            const pool = [...trending, ...movies, ...tv].filter(item =>
+                item && item.id && item.poster_path &&
+                (item.media_type === "movie" || item.media_type === "tv")
+            );
+
+            const unique = [];
+            const seen = new Set();
+
+            pool.forEach(item => {
+                const key = String(item.id) + ":" + getDiscoverType(item);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    unique.push(item);
+                }
+            });
+
+            if (!unique.length) return;
+
+            const picked = unique[Math.floor(Math.random() * unique.length)];
+            showSurpriseMe(false);
+            openTitleDetails(picked);
+        } catch (error) {
+            console.error("Surprise Me error:", error);
+        } finally {
+            if (surpriseMeButton) {
+                surpriseMeButton.disabled = false;
+                surpriseMeButton.innerHTML = '<i class="fa-solid fa-shuffle"></i> Surprise Me';
+            }
+        }
+    }
+
     async function executeSearch(
         searchTerm
     ) {
@@ -1525,7 +1712,7 @@
             return;
         }
 
-        renderSection(
+        renderFullSearchResults(
             `Search Results for "${searchTerm}"`,
             validResults
         );
@@ -1824,7 +2011,7 @@
                 hideSearchSuggestions();
 
                 if (term) {
-                    executeSearch(term);
+                    runFullSearch(term);
                 } else {
                     loadAllCatalog();
                 }
@@ -1838,6 +2025,11 @@
 
     document.addEventListener("DOMContentLoaded", () => {
             setupWhatsAppChannelPrompt();
+
+            if (surpriseMeButton) {
+                surpriseMeButton.addEventListener("click", surpriseMe);
+            }
+
             loadAllCatalog();
         });
 
