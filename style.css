@@ -595,3 +595,11 @@ body {
   #playerEpisodeLabel{font-size:10px}
   .novex-player-nav button{width:34px;height:34px}
 }
+
+/* Browser safety: the launch animation belongs to the installed PWA only.
+   The normal website must never be blocked by the splash screen. */
+@media not all and (display-mode: standalone) {
+  #novexSplash {
+    display: none !important;
+  }
+}
