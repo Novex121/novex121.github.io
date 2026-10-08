@@ -853,13 +853,7 @@
             card.appendChild(titleElement);
 
             const open = () => {
-                openMedia(
-                    item.id,
-                    type,
-                  dubbable,
-                    title,
-                    item.poster_path
-                );
+                openTitleDetails(item, type);
             };
 
             card.addEventListener(
