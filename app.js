@@ -12,7 +12,7 @@
     // IMPORTANT:
     // Do NOT use a publicly exposed key in production.
     // Replace this with your NEW TMDB key for local testing.
-    const TMDB_API_KEY = "YOUR_NEW_TMDB_API_KEY";
+    const TMDB_API_KEY = "'4cace2e053c8bc8ae6ed960c3518c853';";
 
     const TMDB_BASE = "https://api.themoviedb.org/3";
     const TMDB_IMAGE = "https://image.tmdb.org/t/p/";
