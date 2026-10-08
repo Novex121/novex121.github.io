@@ -1484,45 +1484,7 @@
 .category-mode-header p{color:#9999a2;margin:0}
 .category-mode-back{margin-top:16px;border:1px solid rgba(255,255,255,.1);background:#1b1b20;color:#fff;padding:9px 14px;border-radius:8px;cursor:pointer}
 .category-mode-back:hover{background:#e50914}
-</style>
-<script>
-function loadNovexCategory(type){
-  const labels={
-    movie:{title:"Movies",subtitle:"Browse movies only",match:["Trending Movies"]},
-    tv:{title:"Series",subtitle:"Browse series only",match:["Trending TV Series"]},
-    anime:{title:"Anime",subtitle:"Browse anime only",match:["Anime"]}
-  };
-  const config=labels[type]||labels.movie;
-  if(typeof loadAllCatalog!=="function") return;
-
-  loadAllCatalog().then(function(){
-    const container=document.getElementById("content-container");
-    if(!container) return;
-
-    Array.from(container.querySelectorAll(".media-row-section")).forEach(function(section){
-      const heading=section.querySelector(".section-header h2");
-      const name=heading?heading.textContent.trim():"";
-      section.style.display=config.match.indexOf(name)!==-1?"":"none";
-    });
-
-    document.querySelectorAll(".desktop-nav a").forEach(function(link){link.classList.remove("active")});
-    const links=document.querySelectorAll(".desktop-nav a");
-    const index=type==="movie"?1:type==="tv"?2:3;
-    if(links[index]) links[index].classList.add("active");
-
-    const oldHeader=document.getElementById("novexCategoryHeader");
-    if(oldHeader) oldHeader.remove();
-
-    const header=document.createElement("section");
-    header.id="novexCategoryHeader";
-    header.className="category-mode-header";
-    header.innerHTML="<span class='category-kicker'>NOVEX LIBRARY</span><h1>"+config.title+"</h1><p>"+config.subtitle+"</p><button class='category-mode-back' type='button' onclick='loadAllCatalog();document.getElementById("novexCategoryHeader")?.remove();'>← Back to Home</button>";
-
-    container.parentNode.insertBefore(header,container);
-    window.scrollTo({top:0,behavior:"smooth"});
-  });
-}
-</script><main id="content-container"></main>  <section id="titleDetails" class="title-details" aria-hidden="true" role="dialog" aria-modal="true">
+</style><main id="content-container"></main>  <section id="titleDetails" class="title-details" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="title-details-backdrop" id="detailsBackdrop"></div>
     <button class="title-details-close" id="detailsClose" type="button" aria-label="Close details"><i class="fa-solid fa-xmark"></i></button>
     <div class="title-details-scroll">
