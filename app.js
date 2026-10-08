@@ -955,6 +955,9 @@
     const detailsTitle = $("detailsTitle");
     const detailsKicker = $("detailsKicker");
     const detailsMeta = $("detailsMeta");
+    const detailsRating = $("detailsRating");
+    const detailsYear = $("detailsYear");
+    const detailsFormat = $("detailsFormat");
     const detailsOverview = $("detailsOverview");
     const detailsGenres = $("detailsGenres");
     const detailsEpisodes = $("detailsEpisodes");
@@ -994,8 +997,13 @@
         detailsPoster.alt = title;
         const backdrop = detailsMedia.backdrop_path || detailsMedia.poster_path || detailsMedia.poster || "";
         detailsBackdrop.style.backgroundImage = backdrop ? 'url("' + getBackdropUrl(backdrop) + '")' : "none";
-        detailsMeta.textContent = [detailYear(detailsMedia), detailsMedia.vote_average ? "⭐ " + Number(detailsMedia.vote_average).toFixed(1) : "", type === "tv" ? "Series" : "Movie", isDubbable(detailsMedia) ? "Sub & Dub" : "Sub"].filter(Boolean).join(" • ");
-        detailsOverview.textContent = detailsMedia.overview || "Discover more about this title on Novex. Choose Play to start watching.";
+        const initialYear = detailYear(detailsMedia) || "—";
+        const initialRating = detailsMedia.vote_average ? Number(detailsMedia.vote_average).toFixed(1) : "—";
+        detailsMeta.textContent = [initialYear !== "—" ? initialYear : "", initialRating !== "—" ? "⭐ " + initialRating : "", type === "tv" ? "Series" : "Movie", isDubbable(detailsMedia) ? "Sub & Dub" : "Sub"].filter(Boolean).join(" • ");
+        if (detailsRating) detailsRating.textContent = initialRating !== "—" ? "⭐ " + initialRating : "Not rated";
+        if (detailsYear) detailsYear.textContent = initialYear;
+        if (detailsFormat) detailsFormat.textContent = type === "tv" ? "Series" : "Movie";
+        detailsOverview.textContent = detailsMedia.overview || "No description is available yet. Choose Play when you're ready to watch.";
         detailsGenres.innerHTML = Array.isArray(detailsMedia.genres) ? detailsMedia.genres.map(function(g){ return '<span class="details-genre">' + escapeHtml(g.name) + '</span>'; }).join("") : "";
         detailsEpisodes.hidden = type !== "tv";
         detailsSimilarSection.hidden = true;
@@ -1011,8 +1019,16 @@
                 if (response.ok) {
                     const full = await response.json();
                     detailsMedia = Object.assign(detailsMedia, full, {media_type:type});
+                    const fullYear = detailYear(full) || "—";
+                    const fullRating = full.vote_average ? Number(full.vote_average).toFixed(1) : "—";
+                    const formatInfo = type === "tv"
+                        ? ((full.number_of_seasons || 0) + " Season" + ((full.number_of_seasons || 0) === 1 ? "" : "s"))
+                        : (full.runtime ? full.runtime + " min" : "Movie");
                     detailsOverview.textContent = full.overview || detailsOverview.textContent;
-                    detailsMeta.textContent = [detailYear(full), full.vote_average ? "⭐ " + Number(full.vote_average).toFixed(1) : "", type === "tv" ? ((full.number_of_seasons || 0) + " Seasons") : (full.runtime ? full.runtime + " min" : ""), isDubbable(detailsMedia) ? "Sub & Dub" : "Sub"].filter(Boolean).join(" • ");
+                    detailsMeta.textContent = [fullYear !== "—" ? fullYear : "", fullRating !== "—" ? "⭐ " + fullRating : "", formatInfo, isDubbable(detailsMedia) ? "Sub & Dub" : "Sub"].filter(Boolean).join(" • ");
+                    if (detailsRating) detailsRating.textContent = fullRating !== "—" ? "⭐ " + fullRating + " / 10" : "Not rated";
+                    if (detailsYear) detailsYear.textContent = fullYear;
+                    if (detailsFormat) detailsFormat.textContent = formatInfo;
                     detailsGenres.innerHTML = Array.isArray(full.genres) ? full.genres.map(function(g){ return '<span class="details-genre">' + escapeHtml(g.name) + '</span>'; }).join("") : "";
                     if (type === "tv") renderDetailsSeasons(full.seasons || []);
                     const similar = full.similar && Array.isArray(full.similar.results) ? full.similar.results.slice(0, 12) : [];
