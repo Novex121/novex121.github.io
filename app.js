@@ -2100,6 +2100,108 @@
     }
 
     /* =========================================================
+       CATEGORY NAVIGATION
+       ========================================================= */
+
+    async function loadNovexCategory(category) {
+        if (!contentContainer) return;
+
+        const config = {
+            movie: {
+                title: "Movies",
+                subtitle: "Explore movies only",
+                requests: [
+                    ["Popular Movies", "trending/movie/week", {}],
+                    ["Top Rated Movies", "movie/top_rated", {}],
+                    ["Now Playing", "movie/now_playing", {}],
+                    ["Upcoming Movies", "movie/upcoming", {}]
+                ]
+            },
+            tv: {
+                title: "Series",
+                subtitle: "Explore TV series only",
+                requests: [
+                    ["Popular Series", "trending/tv/week", {}],
+                    ["Top Rated Series", "tv/top_rated", {}],
+                    ["Airing Today", "tv/airing_today", {}],
+                    ["On The Air", "tv/on_the_air", {}]
+                ]
+            },
+            anime: {
+                title: "Anime",
+                subtitle: "Explore anime only",
+                requests: [
+                    ["Popular Anime", "discover/tv", {with_genres:16, with_original_language:"ja", sort_by:"popularity.desc"}],
+                    ["Top Rated Anime", "discover/tv", {with_genres:16, with_original_language:"ja", sort_by:"vote_average.desc", "vote_count.gte":50}],
+                    ["Latest Anime", "discover/tv", {with_genres:16, with_original_language:"ja", sort_by:"first_air_date.desc"}]
+                ]
+            }
+        }[category] || null;
+
+        if (!config) return;
+
+        stopHeroSlider();
+        hideSearchHistory();
+        hideSearchSuggestions();
+        contentContainer.innerHTML = "";
+
+        const header = document.createElement("section");
+        header.className = "category-page-header";
+        header.innerHTML =
+            '<div class="category-kicker">NOVEX LIBRARY</div>' +
+            '<h1>' + config.title + '</h1>' +
+            '<p>' + config.subtitle + '</p>' +
+            '<button type="button" class="category-back-btn">← Back to Home</button>';
+
+        header.querySelector("button").addEventListener("click", loadAllCatalog);
+        contentContainer.appendChild(header);
+
+        for (const request of config.requests) {
+            const results = await apiFetch(request[1], request[2], []);
+
+            let filtered = results.filter(item => {
+                if (!item || !item.id) return false;
+                return getMediaType(item, category === "movie" ? "movie" : "tv") ===
+                    (category === "movie" ? "movie" : "tv");
+            });
+
+            if (category === "anime") {
+                filtered = filtered.filter(item =>
+                    item.genre_ids &&
+                    item.genre_ids.includes(16) &&
+                    (!item.original_language || item.original_language === "ja")
+                );
+            }
+
+            if (filtered.length) {
+                renderSection(
+                    request[0],
+                    filtered,
+                    category === "movie" ? "movie" : "tv",
+                    category === "anime"
+                );
+            }
+        }
+
+        if (contentContainer.querySelectorAll(".media-row-section").length === 0) {
+            const empty = document.createElement("div");
+            empty.style.padding = "50px 20px";
+            empty.style.textAlign = "center";
+            empty.innerHTML = "<h2>No titles available right now</h2><p style='color:#aaa'>Please try again in a moment.</p>";
+            contentContainer.appendChild(empty);
+        }
+
+        window.scrollTo({top: 0, behavior: "smooth"});
+        document.querySelectorAll(".desktop-nav a").forEach(link => link.classList.remove("active"));
+
+        const navLinks = document.querySelectorAll(".desktop-nav a");
+        const navIndex = category === "movie" ? 1 : category === "tv" ? 2 : 3;
+        if (navLinks[navIndex]) navLinks[navIndex].classList.add("active");
+    }
+
+    window.loadNovexCategory = loadNovexCategory;
+
+    /* =========================================================
        INITIALIZATION
        ========================================================= */
 
