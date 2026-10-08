@@ -136,7 +136,7 @@
         {
             id: 693134,
             title: "Dune: Part Two",
-            poster_path: "/8b8R8l88Qje9dn9OE8PY05NxlIF.jpg",
+            poster_path: "/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
             backdrop_path: "/xOMo8DxXY7P6n0w6UAM8xPVDZco.jpg",
             vote_average: 8.2,
             media_type: "movie",
@@ -540,6 +540,42 @@
         return `${TMDB_IMAGE}w500${path}`;
     }
 
+    function getPosterFallback(title = "NOVEX", type = "movie") {
+        const safeTitle = String(title || "NOVEX")
+            .replace(/[&<>"]/g, "")
+            .slice(0, 26);
+
+        const label = type === "tv" ? "SERIES" : "MOVIE";
+
+        const svg =
+            `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="750" viewBox="0 0 500 750">
+                <defs>
+                    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#e50914"/>
+                        <stop offset="100%" stop-color="#3a0a0d"/>
+                    </linearGradient>
+                </defs>
+                <rect width="500" height="750" fill="#0b0b0e"/>
+                <rect width="500" height="750" fill="url(#g)" opacity=".22"/>
+                <text x="34" y="82" fill="#ffffff" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="5">NOVEX</text>
+                <text x="34" y="620" fill="#ffffff" font-family="Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="3">${label}</text>
+                <text x="34" y="664" fill="#ffffff" font-family="Arial,sans-serif" font-size="28" font-weight="800">${safeTitle}</text>
+                <rect x="34" y="690" width="72" height="5" rx="3" fill="#e50914"/>
+            </svg>`;
+
+        return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+    }
+
+    function protectPosterImage(image, title, type) {
+        if (!image) return;
+
+        image.addEventListener("error", () => {
+            if (image.dataset.novexFallback === "1") return;
+            image.dataset.novexFallback = "1";
+            image.src = getPosterFallback(title, type);
+        }, { once: true });
+    }
+
     function getBackdropUrl(path) {
         if (!path) return "";
 
@@ -803,8 +839,8 @@
                 );
 
             image.loading = "lazy";
-
             image.alt = title;
+            protectPosterImage(image, title, type);
 
             const titleElement =
                 document.createElement("p");
