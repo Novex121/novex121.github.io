@@ -1002,6 +1002,244 @@
       #novexSplash { transition: none; }
     }
 
+  
+    /* =====================================================
+       NOVEX VISUAL POLISH — COLOR + SPACING
+       ===================================================== */
+    :root {
+      --novex-red: #e50914;
+      --novex-red-bright: #ff3340;
+      --novex-purple: #8b5cf6;
+      --novex-blue: #38bdf8;
+      --novex-text-soft: #d9d9df;
+    }
+
+    main#content-container {
+      padding-top: 6px;
+    }
+
+    .media-row-section {
+      margin-top: 12px;
+      padding-top: 30px;
+      padding-bottom: 14px;
+    }
+
+    .media-row-section + .media-row-section {
+      margin-top: 2px;
+      border-top: 1px solid rgba(255,255,255,.045);
+    }
+
+    .section-header {
+      min-height: 34px;
+      margin-bottom: 18px;
+      padding: 0 2px;
+    }
+
+    .section-header h2 {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--novex-text-soft);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.35px;
+      line-height: 1.2;
+      text-shadow: 0 2px 16px rgba(0,0,0,.35);
+    }
+
+    .section-header h2::before {
+      width: 5px;
+      height: 23px;
+      margin-right: 1px;
+      background: linear-gradient(180deg,var(--novex-red-bright),var(--novex-red));
+      box-shadow: 0 0 14px rgba(229,9,20,.25);
+    }
+
+    .section-header h2::after {
+      content: "";
+      position: absolute;
+      left: 16px;
+      bottom: -8px;
+      width: 42px;
+      height: 2px;
+      border-radius: 99px;
+      background: linear-gradient(90deg,var(--novex-red),transparent);
+      opacity: .85;
+    }
+
+    .media-card {
+      background: linear-gradient(180deg,#1a1a1f,#111114);
+      border: 1px solid rgba(255,255,255,.055);
+      border-radius: 10px;
+      padding-bottom: 7px;
+      overflow: hidden;
+    }
+
+    .media-card img {
+      border-radius: 9px 9px 6px 6px;
+    }
+
+    .media-card p {
+      color: #d5d5da;
+      margin: 10px 8px 0;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.35;
+    }
+
+    .media-card:hover p {
+      color: #fff;
+    }
+
+    .badge {
+      background: rgba(5,5,8,.82);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #f4f4f6;
+      backdrop-filter: blur(8px);
+    }
+
+    .whatsapp-welcome {
+      margin-top: 28px;
+      margin-bottom: 12px;
+      padding: 21px 22px;
+      border-color: rgba(37,211,102,.18);
+      background:
+        radial-gradient(circle at 10% 20%,rgba(37,211,102,.08),transparent 35%),
+        linear-gradient(135deg,#18181b,#101012);
+    }
+
+    .whatsapp-kicker,
+    .surprise-me-kicker {
+      text-shadow: 0 0 14px rgba(229,9,20,.2);
+    }
+
+    .whatsapp-welcome-copy h2 {
+      color: #f7f7f9;
+      font-size: 22px;
+      line-height: 1.25;
+      letter-spacing: -.25px;
+      margin: 6px 0 8px;
+    }
+
+    .whatsapp-welcome-copy p {
+      color: #b7b7bf;
+      line-height: 1.65;
+    }
+
+    .surprise-me-panel {
+      margin-top: 28px;
+      margin-bottom: 6px;
+      padding: 24px 26px;
+      background:
+        radial-gradient(circle at 90% 50%,rgba(139,92,246,.10),transparent 35%),
+        linear-gradient(110deg,rgba(229,9,20,.12),rgba(255,255,255,.035));
+    }
+
+    .surprise-me-copy h2 {
+      color: #f4f4f7;
+      letter-spacing: -.25px;
+      margin: 6px 0 7px;
+    }
+
+    .surprise-me-copy p {
+      color: #a8a8b1;
+      line-height: 1.5;
+    }
+
+    .search-form input::placeholder {
+      color: #777780;
+    }
+
+    .search-form input:focus {
+      box-shadow: 0 0 0 3px rgba(229,9,20,.10);
+    }
+
+    .hero-content-shell {
+      padding-left: 2px;
+    }
+
+    #hero-title {
+      text-wrap: balance;
+    }
+
+    #hero-meta {
+      color: #c3c3ca;
+      line-height: 1.6;
+      letter-spacing: .1px;
+    }
+
+    .hero-buttons {
+      margin-top: 4px;
+    }
+
+    .mobile-bottom-nav button {
+      transition: color .2s ease, transform .2s ease;
+    }
+
+    .mobile-bottom-nav button:hover {
+      color: #dcdce1;
+    }
+
+    .mobile-bottom-nav button.active {
+      color: #f4f4f6;
+    }
+
+    @media (max-width: 800px) {
+      main#content-container {
+        padding-top: 2px;
+      }
+
+      .media-row-section {
+        margin-top: 8px;
+        padding-top: 24px;
+        padding-bottom: 12px;
+      }
+
+      .section-header {
+        margin-bottom: 15px;
+        padding-left: 2px;
+      }
+
+      .section-header h2 {
+        font-size: 18px;
+        line-height: 1.25;
+      }
+
+      .section-header h2::before {
+        height: 20px;
+      }
+
+      .section-header h2::after {
+        left: 15px;
+        bottom: -7px;
+      }
+
+      .media-card {
+        padding-bottom: 6px;
+      }
+
+      .media-card p {
+        margin: 8px 7px 0;
+        font-size: 12px;
+      }
+
+      .whatsapp-welcome {
+        margin-top: 20px;
+        margin-bottom: 10px;
+        padding: 17px;
+      }
+
+      .whatsapp-welcome-copy h2 {
+        font-size: 19px;
+        margin-top: 5px;
+      }
+
+      .whatsapp-welcome-copy p {
+        line-height: 1.55;
+      }
+    }
+
   </style></head><body>
   <script>
   // Fail-safe for normal browser visits: never block the website behind the app splash.
