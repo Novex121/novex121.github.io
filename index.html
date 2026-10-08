@@ -1570,6 +1570,37 @@ body.details-open{overflow:hidden!important}
   font-size:14px;
   margin-bottom:22px;
 }
+.details-info-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:0 0 18px;
+}
+.details-info-card{
+  min-width:105px;
+  padding:10px 13px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  background:rgba(255,255,255,.055);
+  backdrop-filter:blur(8px);
+}
+.details-info-card span{
+  display:block;
+  color:#92929c;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.details-info-card strong{
+  display:block;
+  color:#fff;
+  font-size:14px;
+}
+.details-info-card:first-child strong{
+  color:#ffd166;
+}
 .details-overview{
   color:#c7c7ce;
   font-size:16px;
@@ -1695,6 +1726,11 @@ body.details-open{overflow:hidden!important}
       <div class="title-details-content">
         <div class="details-poster-wrap"><img id="detailsPoster" src="" alt=""></div>
         <div class="details-copy"><div class="details-kicker" id="detailsKicker">NOVEX</div><h1 id="detailsTitle">Loading...</h1><div class="details-meta" id="detailsMeta"></div>
+          <div class="details-info-grid" aria-label="Title information">
+            <div class="details-info-card"><span>Rating</span><strong id="detailsRating">—</strong></div>
+            <div class="details-info-card"><span>Release</span><strong id="detailsYear">—</strong></div>
+            <div class="details-info-card"><span>Format</span><strong id="detailsFormat">—</strong></div>
+          </div>
           <div class="details-actions"><button class="details-play-btn" id="detailsPlay" type="button"><i class="fa-solid fa-play"></i> Play</button><button class="details-icon-btn" id="detailsWatchlist" type="button" aria-label="Add to Watchlist"><i class="fa-solid fa-bookmark"></i></button><button class="details-icon-btn" id="detailsFavorite" type="button" aria-label="Add to Favorites"><i class="fa-solid fa-heart"></i></button></div>
           <p class="details-overview" id="detailsOverview"></p><div class="details-genres" id="detailsGenres"></div>
         </div>
