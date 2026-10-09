@@ -1298,6 +1298,22 @@
         }
     }
 
+    function updatePlayerUrl(seasonNumber = 1, episodeNumber = 1) {
+        if (!iframe || !currentMedia || !currentMedia.id) return;
+
+        const id = encodeURIComponent(currentMedia.id);
+        const season = Math.max(1, Number(seasonNumber) || 1);
+        const episode = Math.max(1, Number(episodeNumber) || 1);
+
+        if (currentMedia.type === "tv") {
+            iframe.src = `https://vidsrc.me/embed/tv?tmdb=${id}&season=${season}&episode=${episode}`;
+        } else {
+            iframe.src = `https://vidsrc.me/embed/movie?tmdb=${id}`;
+        }
+
+        updatePlayerHeader();
+    }
+
     function playMovie(id) {
         if (!iframe) return;
 
