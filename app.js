@@ -1220,6 +1220,57 @@
         }
     }
 
+    function populateSeasonDropdown(seasons) {
+        if (!seasonSelect) return;
+        const usable = Array.isArray(seasons) ? seasons : [];
+        seasonSelect.innerHTML = usable.length
+            ? usable.map(function (season) {
+                const number = Number(season.season_number);
+                const label = season.name || (number === 0 ? "Specials" : "Season " + number);
+                return '<option value="' + number + '">' + escapeHtml(label) + '</option>';
+            }).join("")
+            : '<option value="1">Season 1</option>';
+
+        seasonSelect.onchange = function () {
+            currentMedia.currentSeason = Math.max(0, Number(seasonSelect.value) || 1);
+            currentMedia.currentEpisode = 1;
+            updateEpisodeDropdown();
+            if (episodeSelect) episodeSelect.value = "1";
+            updatePlayerUrl(currentMedia.currentSeason, 1);
+            updatePlayerHeader();
+            saveContinueWatching();
+        };
+    }
+
+    function updateEpisodeDropdown() {
+        if (!episodeSelect) return;
+        const season = (currentMedia.seasonsData || []).find(function (item) {
+            return Number(item.season_number) === Number(currentMedia.currentSeason);
+        });
+        const count = Math.max(1, Number(season && season.episode_count) || 1);
+        episodeSelect.innerHTML = Array.from({ length: count }, function (_, index) {
+            const number = index + 1;
+            return '<option value="' + number + '">Episode ' + number + '</option>';
+        }).join("");
+
+        episodeSelect.onchange = function () {
+            currentMedia.currentEpisode = Math.max(1, Number(episodeSelect.value) || 1);
+            updatePlayerUrl(currentMedia.currentSeason, currentMedia.currentEpisode);
+            updatePlayerHeader();
+            saveContinueWatching();
+        };
+    }
+
+    function populateFallbackDropdowns() {
+        currentMedia.seasonsData = [{ season_number: 1, name: "Season 1", episode_count: 24 }];
+        currentMedia.currentSeason = 1;
+        currentMedia.currentEpisode = 1;
+        populateSeasonDropdown(currentMedia.seasonsData);
+        if (seasonSelect) seasonSelect.value = "1";
+        updateEpisodeDropdown();
+        if (episodeSelect) episodeSelect.value = "1";
+    }
+
     async function loadTVDetails(id) {
         if (tvControls) {
             tvControls.style.display = "flex";
@@ -1287,14 +1338,17 @@
             updatePlayerHeader();
             updatePlayerUrl(seasonNumber, episodeNumber);
         } catch (error) {
-            console.error(
-                "TV details error:",
-                error
-            );
-
+            console.error("TV details error:", error);
             populateFallbackDropdowns();
-
             updatePlayerUrl(1, 1);
+            if (seasonSelect && seasonSelect.options.length === 1 && seasonSelect.options[0].text === "Loading...") {
+                seasonSelect.innerHTML = '<option value="1">Season 1</option>';
+            }
+            if (episodeSelect && episodeSelect.options.length === 1 && episodeSelect.options[0].text === "Loading...") {
+                episodeSelect.innerHTML = Array.from({ length: 24 }, function (_, index) {
+                    return '<option value="' + (index + 1) + '">Episode ' + (index + 1) + '</option>';
+                }).join("");
+            }
         }
     }
 
