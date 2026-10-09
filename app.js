@@ -1287,21 +1287,24 @@
         }
 
         try {
-            const response =
-                await fetch(
-                    getApiUrl(
-                        `tv/${id}`
-                    )
+            // Time out a stalled TMDB request so the selectors cannot spin forever.
+            const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+            const timeoutId = window.setTimeout(function () {
+                if (controller) controller.abort();
+            }, 8000);
+            let response;
+            try {
+                response = await fetch(
+                    getApiUrl(`tv/${id}`),
+                    controller ? { signal: controller.signal } : {}
                 );
-
-            if (!response.ok) {
-                throw new Error(
-                    `HTTP ${response.status}`
-                );
+            } finally {
+                window.clearTimeout(timeoutId);
             }
-
-            const data =
-                await response.json();
+            if (!response.ok) {
+                throw new Error(`TMDB HTTP ${response.status}`);
+            }
+            const data = await response.json();
 
             let seasons =
                 Array.isArray(data.seasons)
@@ -1314,15 +1317,30 @@
                         season.season_number >= 0
                 );
 
-            currentMedia.seasonsData =
-                seasons;
+            if (!seasons.length) {
+                throw new Error("TMDB returned no seasons for this series.");
+            }
 
-            populateSeasonDropdown(
-                seasons
-            );
+            currentMedia.seasonsData = seasons;
+            const firstSeason = seasons.find(s => Number(s.season_number) > 0) || seasons[0];
+            currentMedia.currentSeason = firstSeason ? Number(firstSeason.season_number) : 1;
+            currentMedia.currentEpisode = 1;
 
-            const firstSeason = seasons.find(s => s.season_number > 0) || seasons[0];
-            const saved = await getSavedContinueItem(currentMedia.id, "tv");
+            // Populate controls before reading saved progress.
+            populateSeasonDropdown(seasons);
+            if (seasonSelect) seasonSelect.value = String(currentMedia.currentSeason);
+            updateEpisodeDropdown();
+            if (episodeSelect) episodeSelect.value = "1";
+
+            let saved = null;
+            try {
+                saved = await Promise.race([
+                    getSavedContinueItem(currentMedia.id, "tv"),
+                    new Promise(resolve => window.setTimeout(() => resolve(null), 1200))
+                ]);
+            } catch (_) {
+                saved = null;
+            }
             const savedSeason = saved ? Number(saved.season || 0) : 0;
             const savedEpisode = saved ? Number(saved.episode || 0) : 0;
             const seasonNumber = savedSeason > 0 && seasons.some(s => Number(s.season_number) === savedSeason)
