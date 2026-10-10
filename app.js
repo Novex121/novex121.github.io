@@ -2008,6 +2008,32 @@
         }
     }
 
+    async function loadLibrary() {
+        if (!contentContainer) return;
+        stopHeroSlider();
+        hideSearchHistory();
+        contentContainer.innerHTML = "";
+        const section = document.createElement("section");
+        section.className = "category-page-header";
+        section.innerHTML = '<div class="category-kicker">YOUR NOVEX</div><h1>My Library</h1><p>Your saved titles and personal collection.</p>';
+        const actions = document.createElement("div");
+        actions.style.cssText = "display:flex;flex-wrap:wrap;gap:12px;padding:0 16px 24px";
+        [
+          ["My Watchlist","fa-bookmark",loadWatchlist],
+          ["Favorites","fa-heart",loadFavorites],
+          ["Saved for Offline","fa-download",loadDownloads]
+        ].forEach(([label,icon,action]) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "category-back-btn";
+          button.innerHTML = '<i class="fa-solid ' + icon + '"></i> ' + label;
+          button.addEventListener("click", action);
+          actions.appendChild(button);
+        });
+        contentContainer.appendChild(section);
+        contentContainer.appendChild(actions);
+    }
+
     async function loadWatchlist() {
         await loadLocalLibrary(STORE_WATCHLIST, "My Watchlist");
     }
