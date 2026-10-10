@@ -811,6 +811,22 @@
       box-shadow: 0 14px 32px rgba(0,0,0,.48);
     }
 
+    .mobile-category-nav { display:none; }
+    @media (max-width: 800px) {
+      .mobile-category-nav {
+        display:flex; position:relative; z-index:20; gap:10px;
+        padding:10px 12px; overflow-x:auto; background:#101012;
+        border-bottom:1px solid rgba(255,255,255,.08); scrollbar-width:none;
+      }
+      .mobile-category-nav::-webkit-scrollbar { display:none; }
+      .mobile-category-nav button {
+        flex:1; min-width:92px; border:1px solid rgba(255,255,255,.12);
+        border-radius:999px; padding:10px 12px; background:#202024;
+        color:#f4f4f5; font-size:12px; font-weight:700; white-space:nowrap;
+      }
+      .mobile-category-nav button:active { background:var(--accent-red); }
+    }
+
     .mobile-bottom-nav {
       display: none;
     }
@@ -1314,8 +1330,8 @@
 
   <button
     class="icon-nav-btn"
-    onclick="loadDownloads()"
-    title="Saved Downloads"
+    onclick="loadLibrary()"
+    title="My Library"
     type="button"
   >
     <i class="fa-solid fa-cloud-arrow-down"></i>
@@ -1361,6 +1377,12 @@
 
   </header>
 
+  <nav class="mobile-category-nav" aria-label="Browse categories">
+    <button type="button" onclick="loadNovexCategory('movie')"><i class="fa-solid fa-film"></i> Movies</button>
+    <button type="button" onclick="loadNovexCategory('tv')"><i class="fa-solid fa-tv"></i> Series</button>
+    <button type="button" onclick="loadNovexCategory('anime')"><i class="fa-solid fa-dragon"></i> Anime</button>
+  </nav>
+
   <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
     <button class="nav-home active" type="button" onclick="loadAllCatalog()">
       <i class="fa-solid fa-house"></i><span>Home</span>
@@ -1374,8 +1396,8 @@
     <button type="button" onclick="loadFavorites()">
       <i class="fa-solid fa-heart"></i><span>Favorites</span>
     </button>
-    <button type="button" onclick="loadDownloads()">
-      <i class="fa-solid fa-download"></i><span>Downloads</span>
+    <button type="button" onclick="loadLibrary()">
+      <i class="fa-solid fa-book-open"></i><span>My Library</span>
     </button>
   </nav>
 
